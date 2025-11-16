@@ -1,0 +1,17 @@
+# Claude config
+.claude/
+
+# ROS2 workspace build artifacts
+dexi_ws/build/
+dexi_ws/install/
+dexi_ws/log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

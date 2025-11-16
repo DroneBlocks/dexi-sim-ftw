@@ -1,0 +1,87 @@
+services:
+  ros2-dev:
+    build: ./ros2-dev
+    ports:
+      - "6080:80"
+      - "9090:9090"  # Rosbridge websocket
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.2
+        aliases:
+          - ros2-dev
+    volumes:
+      - ./dexi_ws:/home/ubuntu/dexi_ws
+      - ./scripts:/home/ubuntu/scripts
+    stdin_open: true
+    tty: true
+
+  micro-dds-agent:
+    image: microros/micro-ros-agent:humble
+    network_mode: "service:px4-sitl"
+    command: udp4 --port 8888
+    stdin_open: true
+    tty: true
+
+  px4-sitl:
+    image: jonasvautherin/px4-gazebo-headless:1.16.0
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.4
+    stdin_open: true
+    tty: true
+
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:latest
+    ports:
+      - "80:80"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.5
+        aliases:
+          - web-dashboard
+    environment:
+      - ROSBRIDGE_URL=ws://ros2-dev:9090
+    depends_on:
+      - ros2-dev
+    stdin_open: true
+    tty: true
+
+  node-red:
+    image: droneblocks/dexi-node-red:latest
+    ports:
+      - "1880:1880"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.6
+        aliases:
+          - node-red
+    environment:
+      - ROSBRIDGE_URL=ws://ros2-dev:9090
+    depends_on:
+      - ros2-dev
+    volumes:
+      - node-red-data:/data
+    stdin_open: true
+    tty: true
+
+  unity-sim:
+    image: droneblocks/dexi-sitl-city:latest
+    ports:
+      - "1337:1337"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.7
+        aliases:
+          - unity-sim
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+networks:
+  dexi-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  node-red-data:
