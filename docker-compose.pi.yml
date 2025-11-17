@@ -1,0 +1,59 @@
+services:
+  px4-sitl:
+    image: jonasvautherin/px4-gazebo-headless:1.16.0
+    network_mode: host
+    command: ["127.0.0.1", "127.0.0.1"]
+    stdin_open: true
+    tty: true
+
+  micro-dds-agent:
+    image: microros/micro-ros-agent:humble
+    network_mode: host
+    command: udp4 --port 8888
+    stdin_open: true
+    tty: true
+    depends_on:
+      - px4-sitl
+
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:latest
+    ports:
+      - "80:80"
+    networks:
+      - dexi-network
+    environment:
+      # Connect to rosbridge running on Pi host
+      - ROSBRIDGE_URL=ws://host.docker.internal:9090
+    stdin_open: true
+    tty: true
+
+  node-red:
+    image: droneblocks/dexi-node-red:latest
+    ports:
+      - "1880:1880"
+    networks:
+      - dexi-network
+    environment:
+      # Connect to rosbridge running on Pi host
+      - ROSBRIDGE_URL=ws://host.docker.internal:9090
+    volumes:
+      - node-red-data:/data
+    stdin_open: true
+    tty: true
+
+  unity-sim:
+    image: droneblocks/dexi-sitl-city:latest
+    ports:
+      - "1337:1337"
+    networks:
+      - dexi-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+networks:
+  dexi-network:
+    driver: bridge
+
+volumes:
+  node-red-data:

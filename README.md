@@ -2,6 +2,8 @@
 
 Modular Docker Compose setup for PX4 SITL simulation with ROS2, web dashboard, and Node-RED.
 
+**Raspberry Pi Users**: See [README.pi.md](README.pi.md) for a simplified setup that uses native ROS2 on your Pi.
+
 ## Architecture
 
 ```
