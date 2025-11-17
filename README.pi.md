@@ -137,6 +137,13 @@ PX4 SITL and micro-dds-agent use `network_mode: host` to:
 - Allow micro-dds-agent to publish DDS topics to host ROS2
 - Simplify DDS discovery between containers and host
 
+### DDS Transport Configuration
+
+The micro-dds-agent is configured to use **UDPv4 transport only** (not shared memory):
+- Shared memory transport doesn't work reliably between containers and host on some Pi configurations
+- Environment variables force UDPv4: `FASTDDS_BUILTIN_TRANSPORTS=UDPv4`
+- This ensures data flows between containerized PX4 and native ROS2 on the Pi host
+
 ### Rosbridge Connection
 
 The web containers connect to rosbridge on the host using `host.docker.internal:9090`.
@@ -176,6 +183,36 @@ Look for successful RTPS connection messages.
 # On host, check domain (default is 0)
 echo $ROS_DOMAIN_ID
 ```
+
+### Topics discovered but no data (ros2 topic echo hangs)
+
+If `ros2 topic list` shows PX4 topics but `ros2 topic echo` or `ros2 topic hz` hangs with no data:
+
+**This is a DDS transport issue.** The compose file is configured to use UDPv4 transport. If you still have issues:
+
+1. **Verify UDPv4 is configured in micro-dds-agent:**
+   ```bash
+   docker compose -f docker-compose.pi.yml exec micro-dds-agent printenv | grep FASTDDS
+   ```
+   Should show: `FASTDDS_BUILTIN_TRANSPORTS=UDPv4`
+
+2. **Force UDPv4 on your host ROS2 as well:**
+   ```bash
+   export FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+   export RMW_FASTRTPS_USE_QOS_FROM_XML=0
+
+   source /opt/ros/jazzy/setup.bash
+   source ~/ros2_ws/install/setup.bash
+   ros2 topic hz /fmu/out/sensor_combined
+   ```
+
+3. **Rebuild your workspace with Jazzy** if px4_msgs was built with a different ROS version:
+   ```bash
+   cd ~/ros2_ws
+   rm -rf build install log
+   source /opt/ros/jazzy/setup.bash
+   colcon build
+   ```
 
 ### Web Dashboard/Node-RED can't connect to rosbridge
 

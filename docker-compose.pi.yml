@@ -10,6 +10,9 @@ services:
     image: microros/micro-ros-agent:jazzy
     network_mode: host
     command: udp4 --port 8888
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - RMW_FASTRTPS_USE_QOS_FROM_XML=0
     stdin_open: true
     tty: true
     depends_on:
