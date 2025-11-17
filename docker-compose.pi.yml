@@ -7,7 +7,7 @@ services:
     tty: true
 
   micro-dds-agent:
-    image: microros/micro-ros-agent:humble
+    image: microros/micro-ros-agent:jazzy
     network_mode: host
     command: udp4 --port 8888
     stdin_open: true

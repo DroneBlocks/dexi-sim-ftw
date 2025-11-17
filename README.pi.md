@@ -96,7 +96,7 @@ docker compose -f docker-compose.pi.yml logs -f px4-sitl
 
 This starts:
 - **px4-sitl**: PX4 SITL simulation (host network) with 127.0.0.1 arguments
-- **micro-dds-agent**: Bridges PX4 to host ROS2 via DDS (host network)
+- **micro-dds-agent**: Bridges PX4 to host ROS2 via DDS (host network, jazzy version)
 - **web-dashboard**: Port 80
 - **node-red**: Port 1880
 - **unity-sim**: Port 1337
