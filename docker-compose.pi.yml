@@ -6,8 +6,8 @@ services:
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
       - RMW_FASTRTPS_USE_QOS_FROM_XML=0
     volumes:
-      - ./dexi_ws:/home/ros/dexi_ws
-      - ./scripts:/home/ros/scripts
+      - ./dexi_ws:/root/dexi_ws
+      - ./scripts:/root/scripts
     stdin_open: true
     tty: true
 

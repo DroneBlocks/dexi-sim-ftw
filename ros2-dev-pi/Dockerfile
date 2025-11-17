@@ -11,11 +11,5 @@ RUN apt-get update && apt-get install -y \
 # Install pysm (same as desktop)
 RUN pip3 install --break-system-packages pysm
 
-# Create workspace directory
-RUN mkdir -p /home/ros/dexi_ws
-
-# Set working directory
-WORKDIR /home/ros
-
 # Default command
 CMD ["bash"]
