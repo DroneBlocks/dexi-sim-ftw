@@ -11,5 +11,12 @@ RUN apt-get update && apt-get install -y \
 # Install pysm (same as desktop)
 RUN pip3 install --break-system-packages pysm
 
-# Default command
-CMD ["bash"]
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Default command - keeps container running
+CMD ["tail", "-f", "/dev/null"]

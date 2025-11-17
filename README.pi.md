@@ -51,6 +51,9 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
 # Log out and back in for group changes to take effect
 
 # Verify Docker
@@ -102,13 +105,15 @@ cd ~/dexi_ws
 ./setup_jazzy.sh
 ```
 
-### 4. Start Rosbridge
+### 4. Verify Auto-Start
 
-Still inside the ros2-dev container:
+The ros2-dev container automatically starts rosbridge on boot (if workspace is built). Check the logs:
 
 ```bash
-~/scripts/start_rosbridge_jazzy.sh
+docker compose -f docker-compose.pi.yml logs ros2-dev
 ```
+
+You should see "✓ Rosbridge started automatically"
 
 ### 5. Verify PX4 Topics
 
@@ -135,6 +140,38 @@ ros2 topic echo /fmu/out/vehicle_status_v1
 | Unity Sim | http://pi-ip-address:1337 | City simulation |
 | Rosbridge | ws://pi-ip-address:9090 | Running in ros2-dev container |
 | ROS2 CLI | docker exec into ros2-dev | Headless, no VNC |
+
+## Auto-Start on Reboot
+
+All containers are configured with `restart: unless-stopped`:
+- Containers automatically restart on Pi reboot
+- Containers restart if they crash
+- Rosbridge auto-starts when ros2-dev container starts (if workspace is built)
+
+**After Pi reboot, everything should come up automatically:**
+
+1. Docker daemon starts
+2. All containers restart
+3. PX4 SITL starts
+4. Micro-DDS agent connects to PX4
+5. ROS2-dev container starts and launches rosbridge
+6. Web dashboard, Node-RED, and Unity connect to rosbridge
+
+**To check status after reboot:**
+
+```bash
+# Check all containers are running
+docker compose -f docker-compose.pi.yml ps
+
+# Check rosbridge started
+docker compose -f docker-compose.pi.yml logs ros2-dev | grep rosbridge
+```
+
+**To stop containers from auto-starting:**
+
+```bash
+docker compose -f docker-compose.pi.yml down
+```
 
 ## Configuration Notes
 

@@ -2,6 +2,7 @@ services:
   ros2-dev:
     build: ./ros2-dev-pi
     network_mode: host
+    restart: unless-stopped
     environment:
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
       - RMW_FASTRTPS_USE_QOS_FROM_XML=0
@@ -14,6 +15,7 @@ services:
   px4-sitl:
     image: jonasvautherin/px4-gazebo-headless:1.16.0
     network_mode: host
+    restart: unless-stopped
     command: ["127.0.0.1", "127.0.0.1"]
     stdin_open: true
     tty: true
@@ -21,6 +23,7 @@ services:
   micro-dds-agent:
     image: microros/micro-ros-agent:jazzy
     network_mode: host
+    restart: unless-stopped
     command: udp4 --port 8888
     environment:
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
@@ -36,6 +39,7 @@ services:
       - "80:80"
     networks:
       - dexi-network
+    restart: unless-stopped
     environment:
       # Connect to rosbridge on host via gateway
       - ROSBRIDGE_URL=ws://host.docker.internal:9090
@@ -52,6 +56,7 @@ services:
       - "1880:1880"
     networks:
       - dexi-network
+    restart: unless-stopped
     environment:
       # Connect to rosbridge on host via gateway
       - ROSBRIDGE_URL=ws://host.docker.internal:9090
