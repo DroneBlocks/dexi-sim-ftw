@@ -1,122 +1,129 @@
 # DEXI Pi Setup
 
-Docker Compose setup for Raspberry Pi with native ROS2 installation.
+Docker Compose setup for Raspberry Pi with containerized ROS2 (headless).
 
-**Note**: This uses `docker-compose.pi.yml` - a simplified setup for Pi that assumes you have ROS2 Humble running natively on your Pi host. For the full desktop development setup (with VNC), see [README.md](README.md).
+**Note**: This uses `docker-compose.pi.yml` - includes a lightweight ROS2 Jazzy container without VNC for Pi deployments. For the full desktop development setup (with VNC), see [README.md](README.md).
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────┐
-│  Raspberry Pi Host                       │
-│  - ROS2 Humble (native)                  │
-│  - Rosbridge WebSocket (9090)            │
-│  - DDS Domain (receives PX4 topics)      │
-└─────────────────────────────────────────┘
-            ▲
-            │ DDS + WebSocket
-            │
-┌───────────┴─────────────────────────────┐
-│  Docker Containers                       │
+│  Host Network Containers                 │
 │                                          │
+│  ros2-dev (host network)                 │
+│  ├─ ROS2 Jazzy (headless, no VNC)        │
+│  ├─ Rosbridge WebSocket (9090)           │
+│  └─ Receives PX4 topics via DDS          │
+│            ▲                             │
+│            │ DDS (UDPv4)                  │
+│            ▼                             │
 │  px4-sitl (host network)                 │
 │  ├─ PX4 SITL simulation                  │
 │  └─ Connects to micro-dds on :8888       │
-│                                          │
+│            ▲                             │
+│            │                             │
 │  micro-dds-agent (host network)          │
-│  └─ Bridges PX4 ↔ Host ROS2 via DDS      │
+│  └─ Bridges PX4 ↔ ROS2 via DDS           │
+└─────────────────────────────────────────┘
+            │
+            │ WebSocket (9090)
+            ▼
+┌─────────────────────────────────────────┐
+│  Bridge Network Containers               │
 │                                          │
-│  web-dashboard (bridge network)          │
-│  node-red (bridge network)               │
-│  unity-sim (bridge network)              │
-│  └─ Connect to rosbridge on host         │
-└──────────────────────────────────────────┘
+│  web-dashboard (80)                      │
+│  node-red (1880)                         │
+│  unity-sim (1337)                        │
+│  └─ Connect to rosbridge via host.docker.internal:9090
+└─────────────────────────────────────────┘
 ```
 
 ## Prerequisites
 
-**On your Raspberry Pi host:**
+**On your Raspberry Pi:**
+
+- Docker and Docker Compose installed
+- Git installed
 
 ```bash
-# ROS2 Humble must be installed
-source /opt/ros/humble/setup.bash
+# Install Docker (if not already installed)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
 
-# Install rosbridge server
-sudo apt install ros-humble-rosbridge-server
+# Log out and back in for group changes to take effect
 
-# Install px4_msgs (required for rosbridge to handle PX4 topics)
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
-git clone https://github.com/PX4/px4_msgs.git -b release/1.16
-cd ~/ros2_ws
-colcon build
-source install/setup.bash
+# Verify Docker
+docker --version
+docker compose version
 ```
 
 ## Quick Start
 
-### 1. Start Rosbridge on Pi Host
-
-In a terminal on your Pi:
+### 1. Clone Repository
 
 ```bash
-# Source ROS2 and your workspace
-source /opt/ros/humble/setup.bash
-source ~/ros2_ws/install/setup.bash
-
-# Start rosbridge
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+cd ~
+git clone https://github.com/DroneBlocks/dexi-sim-ftw.git
+cd dexi-sim-ftw
 ```
 
-This exposes ROS2 topics via WebSocket on port 9090.
-
-### 2. Start Docker Containers
-
-In another terminal on your Pi:
+### 2. Build and Start Containers
 
 ```bash
-# Navigate to the project directory
-cd /path/to/dexi_unity_sitl_dev
-
-# Build images (first time only, or after changes)
+# Build images (first time only)
 docker compose -f docker-compose.pi.yml build
 
-# Start all services (foreground, see logs)
-docker compose -f docker-compose.pi.yml up
-
-# OR start in background (detached mode)
+# Start all services in background
 docker compose -f docker-compose.pi.yml up -d
 
-# View logs (if running in background)
+# View logs
 docker compose -f docker-compose.pi.yml logs -f
-
-# View logs for specific service
-docker compose -f docker-compose.pi.yml logs -f px4-sitl
 ```
 
 This starts:
-- **px4-sitl**: PX4 SITL simulation (host network) with 127.0.0.1 arguments
-- **micro-dds-agent**: Bridges PX4 to host ROS2 via DDS (host network, jazzy version)
-- **web-dashboard**: Port 80
-- **node-red**: Port 1880
-- **unity-sim**: Port 1337
+- **ros2-dev**: ROS2 Jazzy headless container (host network)
+- **px4-sitl**: PX4 SITL simulation (host network)
+- **micro-dds-agent**: Bridges PX4 to ROS2 via DDS (host network, jazzy version)
+- **web-dashboard**: Port 80 (bridge network)
+- **node-red**: Port 1880 (bridge network)
+- **unity-sim**: Port 1337 (bridge network)
 
-### 3. Verify PX4 Topics on Host
+### 3. Setup ROS2 Workspace (First Time Only)
 
-In another terminal on your Pi:
+Enter the ros2-dev container and build the workspace:
 
 ```bash
-source /opt/ros/humble/setup.bash
-source ~/ros2_ws/install/setup.bash
+# Enter ros2-dev container
+docker compose -f docker-compose.pi.yml exec ros2-dev bash
+
+# Inside container:
+cd ~/dexi_ws
+./setup_jazzy.sh
+```
+
+### 4. Start Rosbridge
+
+Still inside the ros2-dev container:
+
+```bash
+~/scripts/start_rosbridge_jazzy.sh
+```
+
+### 5. Verify PX4 Topics
+
+Inside the ros2-dev container:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/dexi_ws/install/setup.bash
 
 # List PX4 topics
 ros2 topic list | grep fmu
 
-# Echo vehicle status
+# Check topic data
+ros2 topic hz /fmu/out/sensor_combined
 ros2 topic echo /fmu/out/vehicle_status_v1
-
-# Echo local position
-ros2 topic echo /fmu/out/vehicle_local_position
 ```
 
 ## Access Services
@@ -126,92 +133,99 @@ ros2 topic echo /fmu/out/vehicle_local_position
 | Web Dashboard | http://pi-ip-address | DEXI control interface |
 | Node-RED | http://pi-ip-address:1880 | Flow-based programming |
 | Unity Sim | http://pi-ip-address:1337 | City simulation |
-| Rosbridge | ws://pi-ip-address:9090 | Running on host (not in container) |
+| Rosbridge | ws://pi-ip-address:9090 | Running in ros2-dev container |
+| ROS2 CLI | docker exec into ros2-dev | Headless, no VNC |
 
 ## Configuration Notes
 
-### Host Network Mode
+### Network Configuration
 
-PX4 SITL and micro-dds-agent use `network_mode: host` to:
-- Allow PX4 to connect to micro-dds-agent on localhost:8888
-- Allow micro-dds-agent to publish DDS topics to host ROS2
-- Simplify DDS discovery between containers and host
+**Host Network (DDS services):**
+- `ros2-dev`, `px4-sitl`, `micro-dds-agent` use `network_mode: host`
+- Allows direct DDS communication between containers
+- Shares Pi's network namespace for optimal performance
+
+**Bridge Network (Web services):**
+- `web-dashboard`, `node-red`, `unity-sim` use `dexi-network` bridge
+- Isolated from host network for security
+- Connect to rosbridge via `host.docker.internal:9090` using `extra_hosts` mapping
 
 ### DDS Transport Configuration
 
-The micro-dds-agent is configured to use **UDPv4 transport only** (not shared memory):
-- Shared memory transport doesn't work reliably between containers and host on some Pi configurations
-- Environment variables force UDPv4: `FASTDDS_BUILTIN_TRANSPORTS=UDPv4`
-- This ensures data flows between containerized PX4 and native ROS2 on the Pi host
+All DDS containers are configured to use **UDPv4 transport only**:
+- Shared memory transport doesn't work reliably on Pi
+- Environment variables: `FASTDDS_BUILTIN_TRANSPORTS=UDPv4`
+- Ensures reliable data flow between containers
 
 ### Rosbridge Connection
 
-The web containers connect to rosbridge on the host using `host.docker.internal:9090`.
+Web containers use `host.docker.internal:9090` to reach rosbridge in ros2-dev container:
+```yaml
+extra_hosts:
+  - "host.docker.internal:host-gateway"
+```
 
-**Note**: On Linux, `host.docker.internal` may not work by default. If you have connection issues:
-
-1. **Option A**: Use your Pi's actual IP address in the compose file:
-   ```yaml
-   environment:
-     - ROSBRIDGE_URL=ws://192.168.1.100:9090  # Your Pi's IP
-   ```
-
-2. **Option B**: Add extra_hosts to each service:
-   ```yaml
-   extra_hosts:
-     - "host.docker.internal:host-gateway"
-   ```
-
-### Node-RED Rosbridge Configuration
-
-In Node-RED, configure the rosbridge-websocket node to connect to:
-- `ws://host.docker.internal:9090` (or your Pi's IP)
+This works on Docker 20.10+ on Linux. If you have issues, use your Pi's actual IP:
+```yaml
+environment:
+  - ROSBRIDGE_URL=ws://192.168.1.100:9090
+```
 
 ## Troubleshooting
 
-### PX4 topics not appearing in host ROS2
+### PX4 topics not appearing in ROS2
 
 **Check micro-dds-agent logs:**
 ```bash
 docker compose -f docker-compose.pi.yml logs micro-dds-agent
 ```
 
-Look for successful RTPS connection messages.
+Look for successful RTPS connection and topic creation messages.
 
-**Verify DDS_DOMAIN_ID matches:**
+**Enter ros2-dev and check topics:**
 ```bash
-# On host, check domain (default is 0)
-echo $ROS_DOMAIN_ID
+docker compose -f docker-compose.pi.yml exec ros2-dev bash
+source /opt/ros/jazzy/setup.bash
+source ~/dexi_ws/install/setup.bash
+ros2 topic list | grep fmu
 ```
 
-### Topics discovered but no data (ros2 topic echo hangs)
+### Workspace not built
 
-If `ros2 topic list` shows PX4 topics but `ros2 topic echo` or `ros2 topic hz` hangs with no data:
+If you see errors about px4_msgs not found:
 
-**This is a DDS transport issue.** The compose file is configured to use UDPv4 transport. If you still have issues:
+```bash
+docker compose -f docker-compose.pi.yml exec ros2-dev bash
+cd ~/dexi_ws
+./setup_jazzy.sh
+```
 
-1. **Verify UDPv4 is configured in micro-dds-agent:**
+### Rosbridge not running
+
+Check if rosbridge is running:
+```bash
+docker compose -f docker-compose.pi.yml exec ros2-dev bash
+pgrep -f rosbridge_websocket
+```
+
+If not, start it:
+```bash
+~/scripts/start_rosbridge_jazzy.sh
+```
+
+### Topics discovered but no data
+
+This should NOT happen with the containerized setup since all DDS containers use UDPv4 transport. If it does:
+
+1. **Check DDS environment:**
    ```bash
-   docker compose -f docker-compose.pi.yml exec micro-dds-agent printenv | grep FASTDDS
+   docker compose -f docker-compose.pi.yml exec ros2-dev printenv | grep FASTDDS
    ```
    Should show: `FASTDDS_BUILTIN_TRANSPORTS=UDPv4`
 
-2. **Force UDPv4 on your host ROS2 as well:**
+2. **Restart containers:**
    ```bash
-   export FASTDDS_BUILTIN_TRANSPORTS=UDPv4
-   export RMW_FASTRTPS_USE_QOS_FROM_XML=0
-
-   source /opt/ros/jazzy/setup.bash
-   source ~/ros2_ws/install/setup.bash
-   ros2 topic hz /fmu/out/sensor_combined
-   ```
-
-3. **Rebuild your workspace with Jazzy** if px4_msgs was built with a different ROS version:
-   ```bash
-   cd ~/ros2_ws
-   rm -rf build install log
-   source /opt/ros/jazzy/setup.bash
-   colcon build
+   docker compose -f docker-compose.pi.yml restart
    ```
 
 ### Web Dashboard/Node-RED can't connect to rosbridge
@@ -233,43 +247,46 @@ Unity may be resource-intensive on Pi. If performance is poor:
 - Reduce simulation quality settings
 - Run Unity on a separate x86_64 machine and point it to your Pi's IP
 
-## Auto-starting Rosbridge
-
-To auto-start rosbridge on boot, create a systemd service:
-
-```bash
-sudo nano /etc/systemd/system/rosbridge.service
-```
-
-```ini
-[Unit]
-Description=ROS2 Rosbridge WebSocket Server
-After=network.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/home/pi
-Environment="ROS_DOMAIN_ID=0"
-ExecStart=/bin/bash -c "source /opt/ros/humble/setup.bash && source /home/pi/ros2_ws/install/setup.bash && ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-```bash
-sudo systemctl enable rosbridge
-sudo systemctl start rosbridge
-sudo systemctl status rosbridge
-```
-
 ## Development Workflow
 
-1. **ROS2 packages**: Develop on host in `~/ros2_ws/src/`
-2. **Build**: `cd ~/ros2_ws && colcon build`
-3. **Restart rosbridge**: If you add new message types
+### Adding ROS2 Packages
+
+1. **Add packages to workspace:**
+   ```bash
+   # On Pi, edit files in ./dexi_ws/src/
+   # Files are mounted into ros2-dev container
+   ```
+
+2. **Build inside container:**
+   ```bash
+   docker compose -f docker-compose.pi.yml exec ros2-dev bash
+   cd ~/dexi_ws
+   source /opt/ros/jazzy/setup.bash
+   colcon build
+   source install/setup.bash
+   ```
+
+3. **Restart rosbridge if you added new message types:**
+   ```bash
+   pkill -f rosbridge_websocket
+   ~/scripts/start_rosbridge_jazzy.sh
+   ```
+
+### Accessing ROS2 CLI
+
+```bash
+# Enter ros2-dev container
+docker compose -f docker-compose.pi.yml exec ros2-dev bash
+
+# Source workspace
+source /opt/ros/jazzy/setup.bash
+source ~/dexi_ws/install/setup.bash
+
+# Use ROS2 commands
+ros2 topic list
+ros2 node list
+ros2 run your_package your_node
+```
 
 ## Common Commands
 

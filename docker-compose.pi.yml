@@ -1,4 +1,16 @@
 services:
+  ros2-dev:
+    build: ./ros2-dev-pi
+    network_mode: host
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - RMW_FASTRTPS_USE_QOS_FROM_XML=0
+    volumes:
+      - ./dexi_ws:/home/ros/dexi_ws
+      - ./scripts:/home/ros/scripts
+    stdin_open: true
+    tty: true
+
   px4-sitl:
     image: jonasvautherin/px4-gazebo-headless:1.16.0
     network_mode: host
@@ -25,10 +37,14 @@ services:
     networks:
       - dexi-network
     environment:
-      # Connect to rosbridge running on Pi host
+      # Connect to rosbridge on host via gateway
       - ROSBRIDGE_URL=ws://host.docker.internal:9090
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
+    depends_on:
+      - ros2-dev
 
   node-red:
     image: droneblocks/dexi-node-red:latest
@@ -37,12 +53,16 @@ services:
     networks:
       - dexi-network
     environment:
-      # Connect to rosbridge running on Pi host
+      # Connect to rosbridge on host via gateway
       - ROSBRIDGE_URL=ws://host.docker.internal:9090
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - node-red-data:/data
     stdin_open: true
     tty: true
+    depends_on:
+      - ros2-dev
 
   unity-sim:
     image: droneblocks/dexi-sitl-city:latest
