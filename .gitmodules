@@ -1,0 +1,3 @@
+[submodule "dexi_ws/src/dexi_bringup"]
+	path = dexi_ws/src/dexi_bringup
+	url = https://github.com/droneblocks/dexi_bringup.git
