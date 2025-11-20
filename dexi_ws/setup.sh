@@ -15,19 +15,21 @@ else
     echo "Warning: dexi.repos not found at src/dexi_bringup/dexi.repos"
 fi
 
-# Build px4_msgs first (dependency for other packages)
-if [ -d "src/px4_msgs" ]; then
-    echo "Building px4_msgs..."
-    source /opt/ros/humble/setup.bash
-    colcon build --packages-select px4_msgs
-    echo "px4_msgs built successfully"
-else
-    echo "Warning: px4_msgs not found, skipping..."
-fi
+# Source ROS2
+source /opt/ros/humble/setup.bash
+
+# Build packages in dependency order
+echo "Building px4_msgs..."
+colcon build --packages-select px4_msgs
+
+echo "Building dexi_interfaces..."
+colcon build --packages-select dexi_interfaces
+
+echo "Building dexi_offboard..."
+colcon build --packages-select dexi_offboard
 
 # Build full workspace
-echo "Building workspace..."
-source /opt/ros/humble/setup.bash
+echo "Building remaining packages..."
 colcon build
 
 # Source the workspace
