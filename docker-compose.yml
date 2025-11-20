@@ -9,6 +9,9 @@ services:
         ipv4_address: 172.20.0.2
         aliases:
           - ros2-dev
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - RMW_FASTRTPS_USE_QOS_FROM_XML=0
     volumes:
       - ./dexi_ws:/home/ubuntu/dexi_ws
       - ./scripts:/home/ubuntu/scripts
@@ -16,7 +19,7 @@ services:
     tty: true
 
   micro-dds-agent:
-    image: microros/micro-ros-agent:jazzy
+    image: microros/micro-ros-agent:humble
     network_mode: "service:px4-sitl"
     command: udp4 --port 8888
     environment:
