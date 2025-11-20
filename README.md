@@ -26,21 +26,28 @@ Modular Docker Compose setup for PX4 SITL simulation with ROS2, web dashboard, a
 ## Quick Start
 
 ```bash
-# 1. Build and start
+# 1. Clone with submodules
+git clone --recursive https://github.com/DroneBlocks/dexi-sim-ftw.git
+cd dexi-sim-ftw
+
+# Or if already cloned, initialize submodules:
+git submodule update --init --recursive
+
+# 2. Build and start
 docker compose build
 docker compose up
 
-# 2. Setup ROS2 workspace (first time only)
+# 3. Setup ROS2 workspace (first time only)
 # Open VNC: http://localhost:6080
 # In terminal:
 cd ~/dexi_ws
 ./setup.sh
 
-# 3. Start rosbridge (required for dashboard & Node-RED)
+# 4. Start rosbridge (required for dashboard & Node-RED)
 ~/scripts/start_rosbridge.sh
 ```
 
-**Note**: The setup script (step 2) must be run before rosbridge, as rosbridge needs px4_msgs.
+**Note**: The setup script (step 3) must be run before rosbridge, as rosbridge needs px4_msgs and other dependencies.
 
 ## Access Services
 
