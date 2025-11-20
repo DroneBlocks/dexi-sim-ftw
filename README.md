@@ -49,6 +49,22 @@ cd ~/dexi_ws
 
 **Note**: The setup script (step 3) must be run before rosbridge, as rosbridge needs px4_msgs and other dependencies.
 
+## Troubleshooting
+
+### Node-RED Permission Issues
+
+If Node-RED fails to start with a permission error (`EACCES: permission denied, mkdir '/data/node_modules'`), fix the permissions on the flows directory:
+
+```bash
+# Set correct ownership for Node-RED data directory
+sudo chown -R 1000:1000 ./node-red-dexi/flows
+
+# Restart Node-RED
+docker compose restart node-red
+```
+
+The Node-RED container runs as user ID 1000, so the mounted directory must be owned by that user.
+
 ## Access Services
 
 | Service | URL (from host) | URL (from containers) | Description |
