@@ -3,17 +3,29 @@ set -e
 
 echo "=== ROS2 Workspace Setup ==="
 
-# Clone px4_msgs if not present
-if [ ! -d "src/px4_msgs" ]; then
-    echo "Cloning px4_msgs..."
-    cd src
-    git clone https://github.com/PX4/px4_msgs.git -b release/1.16
-    cd ..
+# Get the script directory and navigate to workspace root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+
+# Import dependencies from dexi.repos
+if [ -f "src/dexi_bringup/dexi.repos" ]; then
+    echo "Importing dependencies from dexi.repos..."
+    vcs import src < src/dexi_bringup/dexi.repos
 else
-    echo "px4_msgs already cloned"
+    echo "Warning: dexi.repos not found at src/dexi_bringup/dexi.repos"
 fi
 
-# Build workspace
+# Build px4_msgs first (dependency for other packages)
+if [ -d "src/px4_msgs" ]; then
+    echo "Building px4_msgs..."
+    source /opt/ros/humble/setup.bash
+    colcon build --packages-select px4_msgs
+    echo "px4_msgs built successfully"
+else
+    echo "Warning: px4_msgs not found, skipping..."
+fi
+
+# Build full workspace
 echo "Building workspace..."
 source /opt/ros/humble/setup.bash
 colcon build
