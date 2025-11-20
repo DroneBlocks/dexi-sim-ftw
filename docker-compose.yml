@@ -63,7 +63,7 @@ services:
     depends_on:
       - ros2-dev
     volumes:
-      - node-red-data:/data
+      - ./node-red-dexi/flows:/data
     stdin_open: true
     tty: true
 
@@ -85,6 +85,3 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-
-volumes:
-  node-red-data:
