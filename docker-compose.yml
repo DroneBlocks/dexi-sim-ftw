@@ -1,6 +1,10 @@
 services:
   ros2-dev:
     build: ./ros2-dev
+    entrypoint: /bin/bash
+    command: >
+      -c "/usr/local/bin/start-rosbridge.sh &
+      exec /entrypoint.sh"
     ports:
       - "6080:80"
       - "9090:9090"  # Rosbridge websocket
@@ -67,6 +71,7 @@ services:
       - ros2-dev
     volumes:
       - ./node-red-dexi/flows:/data
+      - ./node-red-dexi:/usr/src/node-red/node_modules/@droneblocks/node-red-dexi
     stdin_open: true
     tty: true
 
