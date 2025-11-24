@@ -9,16 +9,19 @@ Complete PX4 drone simulation with Unity 3D city, ROS2, Node-RED, and web-based 
 git clone --recursive https://github.com/DroneBlocks/dexi-sim-ftw.git
 cd dexi-sim-ftw
 
-# 2. Start all services
+# 2. Fix permissions (if on Linux/DigitalOcean as root)
+sudo chown -R 1000:1000 ./node-red-dexi/flows
+
+# 3. Start all services
 docker compose up -d
 
-# 3. Build ROS2 workspace (first time only)
+# 4. Build ROS2 workspace (first time only)
 # Open browser to http://localhost:6080 (VNC desktop)
 # In VNC terminal:
 cd ~/dexi_ws
 ./setup.sh
 
-# 4. Restart to enable rosbridge
+# 5. Restart to enable rosbridge
 docker compose restart ros2-dev
 ```
 

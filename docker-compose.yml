@@ -58,6 +58,7 @@ services:
 
   node-red:
     image: droneblocks/dexi-node-red:latest
+    restart: unless-stopped
     ports:
       - "1880:1880"
     networks:
