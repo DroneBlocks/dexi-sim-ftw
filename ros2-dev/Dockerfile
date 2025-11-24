@@ -4,7 +4,9 @@ FROM tiryoh/ros2-desktop-vnc:humble
 RUN sudo pip3 install pysm
 
 RUN sudo apt update -y && \
-    sudo apt install -y ros-humble-rosbridge-server && \
+    sudo apt install -y \
+        ros-humble-rosbridge-server \
+        python3-vcstool && \
     sudo rm -rf /var/lib/apt/lists/*
 
 # Copy startup script for rosbridge
