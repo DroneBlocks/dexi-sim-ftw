@@ -18,19 +18,9 @@ fi
 # Source ROS2
 source /opt/ros/humble/setup.bash
 
-# Build packages in dependency order
-echo "Building px4_msgs..."
-colcon build --packages-select px4_msgs
-
-echo "Building dexi_interfaces..."
-colcon build --packages-select dexi_interfaces
-
-echo "Building dexi_offboard..."
-colcon build --packages-select dexi_offboard
-
-# Build full workspace
-echo "Building remaining packages..."
-colcon build
+# Build only DEXI packages (dependencies will be built automatically)
+echo "Building DEXI packages: dexi_bringup, dexi_interfaces, dexi_offboard..."
+colcon build --packages-up-to dexi_bringup dexi_interfaces dexi_offboard
 
 # Source the workspace
 source install/setup.bash
