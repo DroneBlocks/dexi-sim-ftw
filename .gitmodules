@@ -4,3 +4,4 @@
 [submodule "node-red-dexi"]
 	path = node-red-dexi
 	url = https://github.com/DroneBlocks/node-red-dexi.git
+	ignore = dirty

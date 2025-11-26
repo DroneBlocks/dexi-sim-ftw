@@ -18,9 +18,13 @@ fi
 # Source ROS2
 source /opt/ros/humble/setup.bash
 
-# Build only DEXI packages (dependencies will be built automatically)
-echo "Building DEXI packages: dexi_bringup, dexi_interfaces, dexi_offboard..."
-colcon build --packages-up-to dexi_bringup dexi_interfaces dexi_offboard
+# Build only DEXI packages and required dependencies
+echo "Building DEXI packages: px4_msgs, dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup..."
+colcon build --packages-select px4_msgs dexi_interfaces dexi_offboard dexi_led dexi_bringup \
+  --packages-ignore apriltag apriltag_msgs apriltag_ros dexi_cpp dexi_camera dexi_yolo \
+    camera_ros compressed_depth_image_transport compressed_image_transport \
+    theora_image_transport zstd_image_transport image_transport_plugins \
+  --symlink-install
 
 # Source the workspace
 source install/setup.bash
@@ -38,15 +42,21 @@ echo ""
 echo "=== Setup Complete! ==="
 echo "Workspace will be automatically sourced in new terminals."
 echo ""
-echo "To start rosbridge, restart the container:"
-echo "  docker compose restart ros2-dev"
+
+# Check if DEXI bringup is already running
+if pgrep -f "ros2 launch dexi_bringup dexi_bringup_unity_sim" > /dev/null; then
+    echo "DEXI bringup is already running. Skipping startup."
+    echo "To restart, run: ~/scripts/stop_dexi_bringup.sh && cd ~/dexi_ws && ./setup.sh"
+else
+    echo "Starting DEXI bringup in background..."
+    nohup bash -c "source /opt/ros/humble/setup.bash && source ~/dexi_ws/install/setup.bash && ros2 launch dexi_bringup dexi_bringup_unity_sim.launch.py" > ~/dexi_bringup.log 2>&1 &
+    echo "DEXI bringup started! Logs available at ~/dexi_bringup.log"
+fi
 echo ""
-echo "Rosbridge will then be available at ws://localhost:9090"
+echo "Rosbridge is now available at ws://localhost:9090"
 echo ""
-echo "To use the workspace in THIS terminal, run:"
-echo "  source ~/dexi_ws/install/setup.bash"
-echo ""
-echo "Or close and open a new terminal (auto-sourcing is enabled)."
+echo "To view logs:"
+echo "  tail -f ~/dexi_bringup.log"
 echo ""
 echo "Test it with:"
 echo "  ros2 topic list | grep fmu"

@@ -7,6 +7,8 @@ RUN sudo apt update -y && \
     sudo apt install -y ros-humble-rosbridge-server && \
     sudo rm -rf /var/lib/apt/lists/*
 
-# Copy startup script for rosbridge
+# Copy startup scripts
 COPY start-rosbridge.sh /usr/local/bin/start-rosbridge.sh
-RUN chmod +x /usr/local/bin/start-rosbridge.sh
+COPY start-dexi-bringup.sh /usr/local/bin/start-dexi-bringup.sh
+RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
+    chmod +x /usr/local/bin/start-dexi-bringup.sh

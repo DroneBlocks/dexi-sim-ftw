@@ -6,6 +6,21 @@ dexi_ws/build/
 dexi_ws/install/
 dexi_ws/log/
 
+# ROS2 imported packages from dexi.repos (dependencies)
+dexi_ws/src/apriltag/
+dexi_ws/src/apriltag_msgs/
+dexi_ws/src/apriltag_ros/
+dexi_ws/src/async_web_server_cpp/
+dexi_ws/src/camera_ros/
+dexi_ws/src/image_transport_plugins/
+dexi_ws/src/micro-ROS-Agent/
+dexi_ws/src/micro_ros_msgs/
+dexi_ws/src/px4_msgs/
+dexi_ws/src/rosbridge/
+dexi_ws/src/topic_tools/
+dexi_ws/src/vision_opencv/
+dexi_ws/src/web_video_server/
+
 # Python
 __pycache__/
 *.pyc

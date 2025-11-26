@@ -3,7 +3,7 @@ services:
     build: ./ros2-dev
     entrypoint: /bin/bash
     command: >
-      -c "/usr/local/bin/start-rosbridge.sh &
+      -c "/usr/local/bin/start-dexi-bringup.sh &
       exec /entrypoint.sh"
     ports:
       - "6080:80"
