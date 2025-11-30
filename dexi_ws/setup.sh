@@ -19,11 +19,12 @@ fi
 source /opt/ros/humble/setup.bash
 
 # Build only DEXI packages and required dependencies
-echo "Building DEXI packages: px4_msgs, dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup..."
+echo "Building DEXI packages: px4_msgs, dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, apriltag packages..."
 colcon build --packages-select px4_msgs dexi_interfaces dexi_offboard dexi_led dexi_bringup \
-  --packages-ignore apriltag apriltag_msgs apriltag_ros dexi_cpp dexi_camera dexi_yolo \
-    camera_ros compressed_depth_image_transport compressed_image_transport \
-    theora_image_transport zstd_image_transport image_transport_plugins \
+    apriltag apriltag_msgs apriltag_ros camera_ros dexi_apriltag \
+  --packages-ignore dexi_cpp dexi_camera dexi_yolo \
+    compressed_depth_image_transport compressed_image_transport \
+    theora_image_transport zstd_image_transport image_transport_plugins cv_bridge \
   --symlink-install
 
 # Source the workspace
