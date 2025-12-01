@@ -20,12 +20,9 @@ docker compose up -d
 # In VNC terminal:
 cd ~/dexi_ws
 ./setup.sh
-
-# 5. Restart to enable rosbridge
-docker compose restart ros2-dev
 ```
 
-**That's it!** All services are now running.
+**That's it!** All services are now running (setup.sh automatically starts rosbridge and DEXI bringup).
 
 ## Access Your Simulation
 
@@ -69,17 +66,14 @@ Node-RED (1880) ──┘                         Topics    Simulator
 
 ### Rosbridge Not Working?
 
-Make sure you built the workspace and restarted:
+Make sure you built the workspace:
 ```bash
 # In VNC (http://localhost:6080):
 cd ~/dexi_ws
 ./setup.sh
 
-# Then restart container:
-docker compose restart ros2-dev
-
-# Check logs:
-docker compose logs ros2-dev | grep rosbridge
+# Check if it's running:
+docker compose exec ros2-dev bash -c "tail -f ~/dexi_bringup.log"
 ```
 
 You should see: `Rosbridge WebSocket server started on port 9090`
