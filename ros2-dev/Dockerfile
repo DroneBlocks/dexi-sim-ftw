@@ -7,7 +7,8 @@ RUN sudo apt update -y && \
     sudo apt install -y \
         ros-humble-rosbridge-server \
         ros-humble-image-transport-plugins \
-        ros-humble-cv-bridge && \
+        ros-humble-cv-bridge \
+        ros-humble-camera-info-manager && \
     sudo rm -rf /var/lib/apt/lists/*
 
 # Copy startup scripts
