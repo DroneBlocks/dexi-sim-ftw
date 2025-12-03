@@ -72,7 +72,6 @@ services:
       - ros2-dev
     volumes:
       - ./node-red-dexi/flows:/data
-      - ./node-red-dexi:/usr/src/node-red/node_modules/@droneblocks/node-red-dexi
     stdin_open: true
     tty: true
 
