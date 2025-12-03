@@ -41,7 +41,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:latest
+    image: droneblocks/dexi-droneblocks:0.13
     ports:
       - "80:80"
     networks:
