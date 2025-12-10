@@ -4,7 +4,7 @@ This workspace is mounted from your host machine, so all changes persist across 
 
 ## First Time Setup
 
-Run this once to set up px4_msgs and build the workspace:
+Run this once to build the workspace:
 
 ```bash
 cd ~/dexi_ws
@@ -12,8 +12,8 @@ cd ~/dexi_ws
 ```
 
 This will:
-- Clone px4_msgs (PX4 message definitions)
-- Build the workspace
+- Import dependencies from dexi.repos (if present)
+- Build DEXI packages (px4_msgs is pre-built in the Docker image)
 - Set up auto-sourcing
 
 ## Daily Usage
@@ -59,9 +59,13 @@ ros2 topic echo /fmu/out/vehicle_local_position
 ## Workspace Structure
 
 ```
-dexi_ws/
+/opt/px4_ws/          # Pre-built in Docker image (read-only)
+└── install/
+    └── px4_msgs/     # PX4 message definitions (pre-compiled)
+
+~/dexi_ws/            # Your workspace (mounted from host)
 ├── src/              # Source packages (your code goes here)
-│   └── px4_msgs/     # PX4 message definitions
+│   └── dexi_*/       # DEXI packages
 ├── build/            # Build artifacts (auto-generated)
 ├── install/          # Install space (auto-generated)
 └── log/              # Build logs (auto-generated)
@@ -69,6 +73,8 @@ dexi_ws/
 
 ## Notes
 
+- **px4_msgs** is pre-built in the Docker image at `/opt/px4_ws` - no need to build it yourself!
 - The `build/`, `install/`, and `log/` directories are git-ignored
 - Add your packages to `src/`
 - Changes persist on your host machine at `./dexi_ws`
+- Build times are much faster since px4_msgs is already compiled

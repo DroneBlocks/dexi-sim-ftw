@@ -1,0 +1,37 @@
+FROM tiryoh/ros2-desktop-vnc:humble
+
+# Install build dependencies
+RUN sudo apt update -y && \
+    sudo apt install -y \
+        python3-pip \
+        python3-vcstool \
+        git && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+# Install pysm
+RUN sudo pip3 install pysm
+
+# Install ROS2 dependencies
+RUN sudo apt update -y && \
+    sudo apt install -y \
+        ros-humble-rosbridge-server \
+        ros-humble-image-transport-plugins \
+        ros-humble-cv-bridge \
+        ros-humble-camera-info-manager && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+# Create workspace and clone px4_msgs
+WORKDIR /opt/px4_ws/src
+RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.16 --single-branch
+
+# Build px4_msgs
+WORKDIR /opt/px4_ws
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+    colcon build --packages-select px4_msgs --cmake-args -DCMAKE_BUILD_TYPE=Release"
+
+# Set up environment to auto-source px4_msgs
+# Note: The setup.sh script will add this to .bashrc when the workspace is initialized
+RUN mkdir -p /home/ubuntu && \
+    echo "source /opt/px4_ws/install/setup.bash" >> /home/ubuntu/.bashrc || true
+
+WORKDIR /home/ubuntu
