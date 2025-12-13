@@ -23,8 +23,8 @@ if [ -f "/opt/px4_ws/install/setup.bash" ]; then
 fi
 
 # Build only DEXI packages and required dependencies (px4_msgs is pre-built in base image)
-echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, apriltag packages..."
-colcon build --packages-select dexi_interfaces dexi_offboard dexi_led dexi_bringup \
+echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, dexi_ctf, apriltag packages..."
+colcon build --packages-select dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
     apriltag apriltag_msgs apriltag_ros dexi_apriltag \
   --packages-ignore dexi_cpp dexi_camera dexi_yolo camera_ros \
     compressed_depth_image_transport compressed_image_transport \
