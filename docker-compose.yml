@@ -110,7 +110,7 @@ services:
     volumes:
       - ./dexi-mavsdk:/home/coder/dexi-mavsdk
       - ./dexi_ws:/home/coder/dexi_ws
-    command: --auth password
+    command: --auth password --cert
     restart: unless-stopped
     stdin_open: true
     tty: true
