@@ -19,6 +19,7 @@ services:
     volumes:
       - ./dexi_ws:/home/ubuntu/dexi_ws
       - ./scripts:/home/ubuntu/scripts
+      - ./dexi-mavsdk:/home/ubuntu/dexi-mavsdk
     stdin_open: true
     tty: true
 
@@ -34,9 +35,16 @@ services:
 
   px4-sitl:
     image: jonasvautherin/px4-gazebo-headless:1.16.0
+    # Pass target IPs for MAVLink: [API IP, QGC IP]
+    # - First arg (IP_API): MAVSDK receives on port 14540
+    # - Second arg (IP_QGC): QGC receives on port 14550
+    # Sending API to code-server (172.20.0.8) for MAVSDK dev
+    command: ["172.20.0.8", "172.20.0.8"]
     networks:
       dexi-network:
         ipv4_address: 172.20.0.4
+    volumes:
+      - ./dexi-mavsdk:/root/dexi-mavsdk
     stdin_open: true
     tty: true
 
@@ -84,6 +92,25 @@ services:
         ipv4_address: 172.20.0.7
         aliases:
           - unity-sim
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  code-server:
+    image: codercom/code-server:latest
+    ports:
+      - "9999:8080"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.8
+        aliases:
+          - code-server
+    environment:
+      - PASSWORD=droneblocks
+    volumes:
+      - ./dexi-mavsdk:/home/coder/dexi-mavsdk
+      - ./dexi_ws:/home/coder/dexi_ws
+    command: --auth password
     restart: unless-stopped
     stdin_open: true
     tty: true

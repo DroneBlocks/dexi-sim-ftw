@@ -5,3 +5,6 @@
 	path = node-red-dexi
 	url = https://github.com/DroneBlocks/node-red-dexi.git
 	ignore = dirty
+[submodule "dexi-mavsdk"]
+	path = dexi-mavsdk
+	url = https://github.com/DroneBlocks/dexi-mavsdk.git
