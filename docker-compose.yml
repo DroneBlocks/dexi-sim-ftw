@@ -97,7 +97,7 @@ services:
     tty: true
 
   code-server:
-    image: codercom/code-server:latest
+    build: ./code-server
     ports:
       - "9999:8080"
     networks:
