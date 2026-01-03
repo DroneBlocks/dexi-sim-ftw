@@ -7,3 +7,6 @@ COPY start-rosbridge.sh /usr/local/bin/start-rosbridge.sh
 COPY start-dexi-bringup.sh /usr/local/bin/start-dexi-bringup.sh
 RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
     chmod +x /usr/local/bin/start-dexi-bringup.sh
+
+# Auto-source dexi_ws if it exists (volume-mounted at runtime)
+RUN echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
