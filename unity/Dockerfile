@@ -5,6 +5,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy HTML files
 COPY index.html /usr/share/nginx/html/
+COPY keyboard-control.html /usr/share/nginx/html/
 
 # Copy TemplateData directory (CSS, images, etc.)
 COPY TemplateData /usr/share/nginx/html/TemplateData

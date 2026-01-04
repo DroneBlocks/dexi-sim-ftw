@@ -1,5 +1,6 @@
 services:
   ros2-dev:
+    platform: linux/amd64
     build: ./ros2-dev
     entrypoint: /bin/bash
     command: >
