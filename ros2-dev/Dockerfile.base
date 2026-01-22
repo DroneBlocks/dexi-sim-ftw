@@ -1,8 +1,13 @@
 FROM tiryoh/ros2-desktop-vnc:humble
 
 # Install build dependencies
-RUN sudo apt update -y && \
-    sudo apt install -y \
+# Note: Using --allow-insecure-repositories due to GPG time drift issues in buildx/QEMU
+RUN sudo rm -rf /var/lib/apt/lists/* && \
+    sudo apt-get -o Acquire::Check-Valid-Until=false \
+                 -o Acquire::AllowInsecureRepositories=true \
+                 -o Acquire::AllowDowngradeToInsecureRepositories=true \
+                 update && \
+    sudo apt-get -o APT::Get::AllowUnauthenticated=true install -y \
         python3-pip \
         python3-vcstool \
         git && \
@@ -12,8 +17,11 @@ RUN sudo apt update -y && \
 RUN sudo pip3 install pysm
 
 # Install ROS2 dependencies
-RUN sudo apt update -y && \
-    sudo apt install -y \
+RUN sudo apt-get -o Acquire::Check-Valid-Until=false \
+                 -o Acquire::AllowInsecureRepositories=true \
+                 -o Acquire::AllowDowngradeToInsecureRepositories=true \
+                 update && \
+    sudo apt-get -o APT::Get::AllowUnauthenticated=true install -y \
         ros-humble-rosbridge-server \
         ros-humble-image-transport-plugins \
         ros-humble-cv-bridge \

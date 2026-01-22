@@ -1,6 +1,5 @@
 services:
   ros2-dev:
-    platform: linux/amd64
     build: ./ros2-dev
     entrypoint: /bin/bash
     command: >
@@ -52,7 +51,7 @@ services:
   web-dashboard:
     image: droneblocks/dexi-droneblocks:0.13
     ports:
-      - "80:80"
+      - "80:3000"
     networks:
       dexi-network:
         ipv4_address: 172.20.0.5
@@ -60,6 +59,7 @@ services:
           - web-dashboard
     environment:
       - ROSBRIDGE_URL=ws://ros2-dev:9090
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     depends_on:
       - ros2-dev
     stdin_open: true
@@ -76,7 +76,7 @@ services:
         aliases:
           - node-red
     environment:
-      - ROSBRIDGE_URL=ws://ros2-dev:9090
+      - ROS2_WEBSOCKET_URL=ws://ros2-dev:9090
     depends_on:
       - ros2-dev
     volumes:
