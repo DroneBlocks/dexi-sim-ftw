@@ -1,0 +1,7 @@
+# Force Unix line endings for shell scripts (required for Docker/Linux compatibility)
+*.sh text eol=lf
+
+# Force Unix line endings for other scripts that may run in containers
+*.bash text eol=lf
+*.py text eol=lf
+Dockerfile text eol=lf
