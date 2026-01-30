@@ -120,10 +120,6 @@ All Docker images support both **amd64** (Intel/AMD) and **arm64** (Apple Silico
 - Works on Apple M1/M2/M3 Macs
 - Works on ARM-based cloud instances
 
-## For CTF/Educational Use
-
-Check out [CHALLENGE_IDEAS.md](../dexi-ctf/CHALLENGE_IDEAS.md) for 30+ drone programming challenges, from beginner to expert level.
-
 ## Hardware Deployment
 
 See [README.pi.md](README.pi.md) for deploying to real DEXI drones with Raspberry Pi.
