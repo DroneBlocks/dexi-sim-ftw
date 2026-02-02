@@ -76,7 +76,7 @@ services:
         aliases:
           - node-red
     environment:
-      - ROS2_WEBSOCKET_URL=ws://ros2-dev:9090
+      - ROSBRIDGE_URL=ws://ros2-dev:9090
     depends_on:
       - ros2-dev
     volumes:
