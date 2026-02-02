@@ -24,6 +24,20 @@ cd ~/dexi_ws
 
 **That's it!** All services are now running (setup.sh automatically starts rosbridge and DEXI bringup).
 
+## System Requirements
+
+- **Docker** with Compose v2
+- **CPU**: 4+ cores recommended
+- **RAM**: 16 GB recommended (8 GB minimum)
+- **Disk**: 20+ GB free
+- **Ports**: 80, 1337, 1880, 6080, 9090 must be available
+
+## Windows / WSL2 Notes
+
+- Use **Docker Desktop + WSL2** (Ubuntu recommended).
+- Clone the repo **inside the WSL2 filesystem** (e.g., `~/dexi-sim-ftw`) for best performance.
+- If Node-RED permission errors appear, re-run the `chown` command in WSL2.
+
 ## Access Your Simulation
 
 | Service | URL | Description |
@@ -91,6 +105,11 @@ docker compose restart node-red
 docker compose down
 docker compose up -d
 ```
+
+### Known Issues
+
+- **Port conflicts**: if any service fails to start, verify ports 80/1337/1880/6080/9090 are free.
+- **Slow startup on first run**: initial image pulls and workspace builds can take several minutes.
 
 ## Development
 
