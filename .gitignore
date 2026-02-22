@@ -21,6 +21,9 @@ dexi_ws/src/topic_tools/
 dexi_ws/src/vision_opencv/
 dexi_ws/src/web_video_server/
 
+# Model files (too large for git)
+*.gguf
+
 # Python
 __pycache__/
 *.pyc
@@ -30,3 +33,7 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+docker-compose.override.yml
+
+# Environment secrets
+.env

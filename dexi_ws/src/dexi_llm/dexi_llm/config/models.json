@@ -1,0 +1,52 @@
+{
+  "qwen2.5-1.5b": {
+    "base_model": "unsloth/Qwen2.5-1.5B-Instruct",
+    "chat_template": {
+      "bos": "",
+      "system_prefix": "<|im_start|>system\n",
+      "system_suffix": "<|im_end|>\n",
+      "user_prefix": "<|im_start|>user\n",
+      "user_suffix": "<|im_end|>\n",
+      "assistant_prefix": "<|im_start|>assistant\n",
+      "assistant_suffix": "<|im_end|>\n"
+    },
+    "stop_tokens": ["<|im_end|>"],
+    "lora": {
+      "r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+      "lora_dropout": 0.05
+    },
+    "training": {
+      "lora_dir": "dexi-llm-lora",
+      "merged_dir": "dexi-qwen2.5-1.5b",
+      "gguf_dir": "dexi-qwen2.5-1.5b-gguf"
+    },
+    "gguf_name": "dexi-qwen2.5-1.5b-q4_k_m.gguf"
+  },
+  "llama3.2-1b": {
+    "base_model": "unsloth/Llama-3.2-1B-Instruct",
+    "chat_template": {
+      "bos": "<|begin_of_text|>",
+      "system_prefix": "<|start_header_id|>system<|end_header_id|>\n\n",
+      "system_suffix": "<|eot_id|>\n",
+      "user_prefix": "<|start_header_id|>user<|end_header_id|>\n\n",
+      "user_suffix": "<|eot_id|>\n",
+      "assistant_prefix": "<|start_header_id|>assistant<|end_header_id|>\n\n",
+      "assistant_suffix": "<|eot_id|>\n"
+    },
+    "stop_tokens": ["<|eot_id|>"],
+    "lora": {
+      "r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+      "lora_dropout": 0.05
+    },
+    "training": {
+      "lora_dir": "dexi-llm-lora",
+      "merged_dir": "dexi-llama3.2-1b",
+      "gguf_dir": "dexi-llama3.2-1b-gguf"
+    },
+    "gguf_name": "dexi-llama3.2-1b-q4_k_m.gguf"
+  }
+}
