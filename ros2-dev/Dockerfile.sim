@@ -26,14 +26,9 @@ COPY dexi_ws/src/dexi_bringup/dexi.repos /home/ubuntu/dexi_ws/src/dexi_bringup/d
 RUN cd /home/ubuntu/dexi_ws && \
     vcs import src < src/dexi_bringup/dexi.repos
 
-# Copy dexi packages from repo (these are the ones we maintain)
-# Copied after vcs import so our versions override any vcs-cloned ones
+# Copy dexi_bringup from repo (contains launch files, dexi.repos already copied above)
+# All other dexi packages are cloned by vcs import from dexi.repos
 COPY dexi_ws/src/dexi_bringup /home/ubuntu/dexi_ws/src/dexi_bringup
-COPY dexi_ws/src/dexi_interfaces /home/ubuntu/dexi_ws/src/dexi_interfaces
-COPY dexi_ws/src/dexi_offboard /home/ubuntu/dexi_ws/src/dexi_offboard
-COPY dexi_ws/src/dexi_led /home/ubuntu/dexi_ws/src/dexi_led
-COPY dexi_ws/src/dexi_ctf /home/ubuntu/dexi_ws/src/dexi_ctf
-COPY dexi_ws/src/dexi_apriltag /home/ubuntu/dexi_ws/src/dexi_apriltag
 
 # Build the workspace
 RUN bash -c "source /opt/ros/humble/setup.bash && \
