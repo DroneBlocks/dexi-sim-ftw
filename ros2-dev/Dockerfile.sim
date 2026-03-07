@@ -1,0 +1,54 @@
+# Production image for sim deployment — workspace pre-compiled
+# Built by GitHub Actions, pushed to droneblocks/dexi-sim-ros2:latest
+#
+# Build context must be the repo root:
+#   docker build -f ros2-dev/Dockerfile.sim .
+#
+# Layer stack:
+#   ros2-base (ROS2 Humble + px4_msgs)  →  rarely changes
+#   dexi packages (colcon build)         →  changes when packages update
+#   startup scripts                      →  changes frequently
+
+FROM droneblocks/dexi-sim-ros2-base:humble-px4-1.16.0
+
+WORKDIR /home/ubuntu
+
+# Copy startup scripts
+COPY ros2-dev/start-rosbridge.sh /usr/local/bin/start-rosbridge.sh
+COPY ros2-dev/start-dexi-bringup.sh /usr/local/bin/start-dexi-bringup.sh
+RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
+    chmod +x /usr/local/bin/start-dexi-bringup.sh
+
+# Copy dexi.repos to import external dependencies
+COPY dexi_ws/src/dexi_bringup/dexi.repos /home/ubuntu/dexi_ws/src/dexi_bringup/dexi.repos
+
+# Import all dependencies via vcs (clones apriltag, rosbridge, etc.)
+RUN cd /home/ubuntu/dexi_ws && \
+    vcs import src < src/dexi_bringup/dexi.repos
+
+# Copy dexi packages from repo (these are the ones we maintain)
+# Copied after vcs import so our versions override any vcs-cloned ones
+COPY dexi_ws/src/dexi_bringup /home/ubuntu/dexi_ws/src/dexi_bringup
+COPY dexi_ws/src/dexi_interfaces /home/ubuntu/dexi_ws/src/dexi_interfaces
+COPY dexi_ws/src/dexi_offboard /home/ubuntu/dexi_ws/src/dexi_offboard
+COPY dexi_ws/src/dexi_led /home/ubuntu/dexi_ws/src/dexi_led
+COPY dexi_ws/src/dexi_ctf /home/ubuntu/dexi_ws/src/dexi_ctf
+COPY dexi_ws/src/dexi_apriltag /home/ubuntu/dexi_ws/src/dexi_apriltag
+
+# Build the workspace
+RUN bash -c "source /opt/ros/humble/setup.bash && \
+    source /opt/px4_ws/install/setup.bash && \
+    cd /home/ubuntu/dexi_ws && \
+    colcon build --packages-select \
+      dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
+      apriltag apriltag_msgs apriltag_ros dexi_apriltag \
+    --packages-ignore \
+      dexi_cpp dexi_camera dexi_yolo camera_ros \
+      compressed_depth_image_transport compressed_image_transport \
+      theora_image_transport zstd_image_transport image_transport_plugins cv_bridge \
+    --symlink-install"
+
+# Auto-source workspace
+RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
+    echo '[ -f /opt/px4_ws/install/setup.bash ] && source /opt/px4_ws/install/setup.bash' >> /home/ubuntu/.bashrc && \
+    echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc

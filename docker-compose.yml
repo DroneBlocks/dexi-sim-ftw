@@ -1,6 +1,6 @@
 services:
   ros2-dev:
-    build: ./ros2-dev
+    image: droneblocks/dexi-sim-ros2:latest
     entrypoint: /bin/bash
     command: >
       -c "/usr/local/bin/start-dexi-bringup.sh &
@@ -16,10 +16,6 @@ services:
     environment:
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
       - RMW_FASTRTPS_USE_QOS_FROM_XML=0
-    volumes:
-      - ./dexi_ws:/home/ubuntu/dexi_ws
-      - ./scripts:/home/ubuntu/scripts
-      - ./dexi-mavsdk:/home/ubuntu/dexi-mavsdk
     stdin_open: true
     tty: true
 
