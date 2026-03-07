@@ -34,7 +34,7 @@ services:
     tty: true
 
   px4-sitl:
-    image: jonasvautherin/px4-gazebo-headless:1.16.0
+    image: droneblocks/px4-gazebo-slim:1.16.0
     # Pass target IPs for MAVLink: [API IP, QGC IP]
     # - First arg (IP_API): MAVSDK receives on port 14540
     # - Second arg (IP_QGC): QGC receives on port 14550
@@ -85,7 +85,8 @@ services:
     tty: true
 
   unity-sim:
-    image: droneblocks/dexi-sitl-city:latest
+    build: ./unity
+    # image: droneblocks/dexi-sitl-city:latest
     ports:
       - "1337:1337"
     networks:
