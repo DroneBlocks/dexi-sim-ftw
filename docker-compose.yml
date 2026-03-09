@@ -18,7 +18,7 @@ services:
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
       - RMW_FASTRTPS_USE_QOS_FROM_XML=0
     volumes:
-      - ./dexi_ws:/home/ubuntu/dexi_ws
+      - ./dexi_ws/src:/home/ubuntu/dexi_ws/src
       - ./scripts:/home/ubuntu/scripts
       - ./dexi-mavsdk:/home/ubuntu/dexi-mavsdk
     stdin_open: true
