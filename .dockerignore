@@ -1,0 +1,12 @@
+*.gguf
+.git
+.claude
+dexi_ws/build
+dexi_ws/install
+dexi_ws/log
+dexi_ws/src/dexi_llm/llama.cpp
+dexi_ws/src/dexi_llm/training/lora_*
+dexi_ws/src/dexi_llm/training/merged_*
+dexi_ws/src/dexi_llm/training/gguf_*
+flip_recording
+flip_recording_mcap

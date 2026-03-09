@@ -1,0 +1,80 @@
+{
+  "capabilities": {
+    "flight": {
+      "service": "/dexi/execute_blockly_command",
+      "service_type": "dexi_interfaces/srv/ExecuteBlocklyCommand",
+      "commands": {
+        "start_offboard_heartbeat": {"description": "Begin offboard control (must call first before arm)", "parameter": null},
+        "arm": {"description": "Arm the motors", "parameter": null},
+        "offboard_takeoff": {"description": "Take off in offboard mode", "parameter": "altitude in meters", "default": 1.5, "range": [0.5, 3.0]},
+        "land": {"description": "Land at current position", "parameter": null},
+        "disarm": {"description": "Disarm the motors", "parameter": null},
+        "stop_offboard_heartbeat": {"description": "Stop offboard control", "parameter": null},
+        "fly_forward": {"description": "Fly forward", "parameter": "distance in meters", "default": 1.0, "range": [0.5, 5.0]},
+        "fly_backward": {"description": "Fly backward", "parameter": "distance in meters", "default": 1.0, "range": [0.5, 5.0]},
+        "fly_left": {"description": "Fly left", "parameter": "distance in meters", "default": 1.0, "range": [0.5, 5.0]},
+        "fly_right": {"description": "Fly right", "parameter": "distance in meters", "default": 1.0, "range": [0.5, 5.0]},
+        "fly_up": {"description": "Fly up", "parameter": "distance in meters", "default": 0.5, "range": [0.5, 3.0]},
+        "fly_down": {"description": "Fly down", "parameter": "distance in meters", "default": 0.5, "range": [0.5, 3.0]},
+        "yaw_left": {"description": "Rotate left (counterclockwise)", "parameter": "degrees", "default": 90.0, "range": [1, 360]},
+        "yaw_right": {"description": "Rotate right (clockwise)", "parameter": "degrees", "default": 90.0, "range": [1, 360]},
+        "goto_ned": {"description": "Navigate to NED coordinates", "extra_fields": ["north", "east", "down", "yaw"]},
+        "box_mission": {"description": "Fly a box pattern", "parameter": "size in meters", "default": 1.0},
+        "stop_mission": {"description": "Stop current mission", "parameter": null}
+      },
+      "takeoff_sequence": ["start_offboard_heartbeat", "arm", "offboard_takeoff"],
+      "landing_sequence": ["land", "disarm", "stop_offboard_heartbeat"]
+    },
+    "led_ring_color": {
+      "service": "/dexi/led_service/set_led_ring_color",
+      "service_type": "dexi_interfaces/srv/LEDRingColor",
+      "valid_colors": ["red", "yellow", "orange", "green", "teal", "cyan", "blue", "purple", "magenta", "white", "black", "gold", "pink", "aqua", "jade", "amber", "old_lace"]
+    },
+    "led_pixel_color": {
+      "service": "/dexi/led_service/set_led_pixel_color",
+      "service_type": "dexi_interfaces/srv/LEDPixelColor",
+      "fields": {"index": "uint32 (0-77)", "r": "uint8 (0-255)", "g": "uint8 (0-255)", "b": "uint8 (0-255)"},
+      "led_count": 78
+    },
+    "led_effect": {
+      "service": "/dexi/led_service/set_led_effect",
+      "service_type": "dexi_interfaces/srv/LEDEffect",
+      "valid_effects": ["galaxy", "meteor", "rainbow", "comet", "ripple", "loading", "red_flash", "blink_red", "blink_green", "blink_blue", "blink_yellow", "blink_cyan", "blink_purple", "blink_white"]
+    },
+    "servo": {
+      "service": "/dexi/servo_control",
+      "service_type": "dexi_interfaces/srv/ServoControl",
+      "fields": {"pin": "int32 (0-15)", "angle": "int32 (0-180)", "min_pw": "int32 (default 500)", "max_pw": "int32 (default 2500)"}
+    },
+    "gpio_write": {
+      "service": "/dexi/gpio_writer_service/write_gpio",
+      "service_type": "dexi_interfaces/srv/GPIOSend",
+      "fields": {"pin": "uint8", "state": "bool"}
+    },
+    "flip": {
+      "service": "/flip_node/execute_flip",
+      "service_type": "dexi_flip/srv/ExecuteFlip",
+      "directions": {"0": "forward", "1": "backward", "2": "left", "3": "right"},
+      "min_altitude": 5.0,
+      "note": "Requires drone to be airborne at >= 5 meters"
+    },
+    "camera_recording": {
+      "start_service": "/video_recorder_node/start_recording",
+      "stop_service": "/video_recorder_node/stop_recording",
+      "service_type": "std_srvs/srv/Trigger"
+    },
+    "ctf": {
+      "topic": "/dexi/ctf/challenge/start",
+      "msg_type": "dexi_interfaces/msg/ChallengeStart",
+      "available_challenges": ["arm_basic", "takeoff_basic"]
+    },
+    "telemetry": {
+      "battery": {"topic": "/fmu/out/battery_status", "msg_type": "px4_msgs/msg/BatteryStatus", "key_fields": ["remaining", "voltage_v", "current_a"]},
+      "position": {"topic": "/fmu/out/vehicle_local_position", "msg_type": "px4_msgs/msg/VehicleLocalPosition", "key_fields": ["x", "y", "z", "vx", "vy", "vz", "heading"]},
+      "attitude": {"topic": "/fmu/out/vehicle_attitude", "msg_type": "px4_msgs/msg/VehicleAttitude", "key_fields": ["q"]},
+      "status": {"topic": "/fmu/out/vehicle_status", "msg_type": "px4_msgs/msg/VehicleStatus", "key_fields": ["arming_state", "nav_state"]},
+      "gps": {"topic": "/fmu/out/vehicle_global_position", "msg_type": "px4_msgs/msg/VehicleGlobalPosition", "key_fields": ["lat", "lon", "alt"]},
+      "yolo_detections": {"topic": "/yolo_detections", "msg_type": "dexi_interfaces/msg/YoloDetectionArray", "key_fields": ["detections"]}
+    }
+  }
+}

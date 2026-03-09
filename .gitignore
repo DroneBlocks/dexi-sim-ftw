@@ -21,6 +21,15 @@ dexi_ws/src/topic_tools/
 dexi_ws/src/vision_opencv/
 dexi_ws/src/web_video_server/
 
+# GGUF model files (too large for git — download separately)
+*.gguf
+
+# LLM training artifacts
+dexi_ws/src/dexi_llm/llama.cpp/
+dexi_ws/src/dexi_llm/training/lora_*/
+dexi_ws/src/dexi_llm/training/merged_*/
+dexi_ws/src/dexi_llm/training/gguf_*/
+
 # Python
 __pycache__/
 *.pyc
