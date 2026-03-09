@@ -52,6 +52,9 @@ RUN pip3 install --upgrade pip setuptools packaging && \
     pip3 install llama-cpp-python==0.2.90 && \
     rm -rf /root/.cache/pip
 
+# Stash pre-built workspace so bind mounts can be populated at runtime
+RUN cp -a /home/ubuntu/dexi_ws /opt/dexi_ws_prebuilt
+
 # Auto-source workspace
 RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
     echo '[ -f /opt/px4_ws/install/setup.bash ] && source /opt/px4_ws/install/setup.bash' >> /home/ubuntu/.bashrc && \
