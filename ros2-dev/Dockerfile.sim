@@ -7,7 +7,7 @@
 # Layer stack:
 #   ros2-base (ROS2 Humble + px4_msgs)  →  rarely changes
 #   dexi packages (colcon build)         →  changes when packages update
-#   startup scripts                      →  changes frequently
+#   llama-cpp-python + startup scripts   →  changes frequently
 
 FROM droneblocks/dexi-sim-ros2-base:humble-px4-1.16.0
 
@@ -30,18 +30,27 @@ RUN cd /home/ubuntu/dexi_ws && \
 # All other dexi packages are cloned by vcs import from dexi.repos
 COPY dexi_ws/src/dexi_bringup /home/ubuntu/dexi_ws/src/dexi_bringup
 
-# Build the workspace
+# Copy dexi_llm package (local LLM inference node)
+COPY dexi_ws/src/dexi_llm /home/ubuntu/dexi_ws/src/dexi_llm
+
+# Build the workspace (heavy compilation — do this before pip install for caching)
 RUN bash -c "source /opt/ros/humble/setup.bash && \
     source /opt/px4_ws/install/setup.bash && \
     cd /home/ubuntu/dexi_ws && \
     colcon build --packages-select \
       dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
       apriltag apriltag_msgs apriltag_ros dexi_apriltag \
+      dexi_llm \
     --packages-ignore \
       dexi_cpp dexi_camera dexi_yolo camera_ros \
       compressed_depth_image_transport compressed_image_transport \
       theora_image_transport zstd_image_transport image_transport_plugins cv_bridge \
     --symlink-install"
+
+# Install llama-cpp-python for local LLM inference (after colcon to avoid QEMU memory pressure)
+RUN pip3 install --upgrade pip setuptools packaging && \
+    pip3 install llama-cpp-python==0.2.90 && \
+    rm -rf /root/.cache/pip
 
 # Auto-source workspace
 RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
