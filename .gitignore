@@ -1,9 +1,6 @@
 # Claude config
 .claude/
 
-# Local dev overrides (never deployed to remote)
-docker-compose.override.yml
-
 # ROS2 workspace build artifacts
 dexi_ws/build/
 dexi_ws/install/
