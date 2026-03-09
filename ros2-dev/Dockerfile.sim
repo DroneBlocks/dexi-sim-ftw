@@ -27,11 +27,8 @@ RUN cd /home/ubuntu/dexi_ws && \
     vcs import src < src/dexi_bringup/dexi.repos
 
 # Copy dexi_bringup from repo (contains launch files, dexi.repos already copied above)
-# All other dexi packages are cloned by vcs import from dexi.repos
+# All other dexi packages (including dexi_llm) are cloned by vcs import from dexi.repos
 COPY dexi_ws/src/dexi_bringup /home/ubuntu/dexi_ws/src/dexi_bringup
-
-# Copy dexi_llm package (local LLM inference node)
-COPY dexi_ws/src/dexi_llm /home/ubuntu/dexi_ws/src/dexi_llm
 
 # Build the workspace (heavy compilation — do this before pip install for caching)
 RUN bash -c "source /opt/ros/humble/setup.bash && \
