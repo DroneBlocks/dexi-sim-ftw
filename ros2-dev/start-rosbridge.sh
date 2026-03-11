@@ -12,6 +12,6 @@ if [ -f /home/ubuntu/dexi_ws/install/setup.bash ]; then
 else
     echo "Workspace not built yet - rosbridge not started"
     echo "Run /home/ubuntu/dexi_ws/setup.sh inside VNC to build workspace and start rosbridge"
-    # Keep process running so docker-compose doesn't think it failed
+    # Keep process running so docker compose doesn't think it failed
     exec tail -f /dev/null
 fi

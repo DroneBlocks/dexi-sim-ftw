@@ -10,7 +10,7 @@ This directory now uses a two-layer Docker image strategy to speed up builds:
 If you're just using the existing images, nothing changes! Just run:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 The base image will be pulled from Docker Hub automatically.
