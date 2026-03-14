@@ -2,6 +2,14 @@
 
 Complete PX4 drone simulation with Unity 3D city, ROS2, Node-RED, and web-based ground control station.
 
+## Prerequisites
+
+- **Docker Desktop** installed and running
+  - **Windows**: Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) with the **WSL 2 backend** enabled (default on modern installs). Make sure WSL 2 is installed — Docker Desktop will prompt you if it isn't.
+  - **Mac**: Install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/).
+  - **Linux**: Install [Docker Engine](https://docs.docker.com/engine/install/) or Docker Desktop.
+- **Git** installed ([git-scm.com](https://git-scm.com/) — Windows users: use the default settings, the included `.gitattributes` handles line endings automatically)
+
 ## Quick Start
 
 ```bash
@@ -9,20 +17,13 @@ Complete PX4 drone simulation with Unity 3D city, ROS2, Node-RED, and web-based 
 git clone --recursive https://github.com/DroneBlocks/dexi-sim-ftw.git
 cd dexi-sim-ftw
 
-# 2. Fix permissions (if on Linux/DigitalOcean as root)
-sudo chown -R 1000:1000 ./node-red-dexi/flows
-
-# 3. Start all services
+# 2. Start all services (pulls pre-built images from Docker Hub)
 docker compose up -d
-
-# 4. Build ROS2 workspace (first time only)
-# Open browser to http://localhost:6080 (VNC desktop)
-# In VNC terminal:
-cd ~/dexi_ws
-./setup.sh
 ```
 
-**That's it!** All services are now running (setup.sh automatically starts rosbridge and DEXI bringup).
+**That's it!** The pre-built images include a compiled ROS2 workspace. On first start, the ros2-dev container automatically populates the workspace and launches rosbridge + DEXI bringup. Give it about 30 seconds after `docker compose up -d` for everything to initialize.
+
+> **Windows note:** Port 80 (Ground Control) may conflict with IIS or other services. If `localhost` doesn't load, check that nothing else is using port 80, or change the port mapping in `docker-compose.yml` (e.g., `"8080:3000"`).
 
 ## Access Your Simulation
 
@@ -31,6 +32,7 @@ cd ~/dexi_ws
 | **Unity City** | http://localhost:1337 | 3D drone simulation |
 | **Ground Control** | http://localhost | Web-based GCS |
 | **Node-RED** | http://localhost:1880 | Visual programming |
+| **Code Server** | https://localhost:9999 | Browser-based VS Code (password: `droneblocks`) |
 | **VNC Desktop** | http://localhost:6080 | ROS2 development environment |
 
 ## What's Running
@@ -41,6 +43,7 @@ cd ~/dexi_ws
 - **Rosbridge** - WebSocket bridge for web apps (ws://localhost:9090)
 - **Node-RED** - Flow-based drone programming
 - **Web GCS** - Browser-based ground control station
+- **Code Server** - VS Code in the browser with MAVSDK + Python for drone scripting
 
 ## Verify Everything Works
 
@@ -60,25 +63,28 @@ You should see PX4 topics streaming data.
 Unity Sim (1337) ─┐
 Web GCS (80) ─────┼──> Rosbridge (9090) ──> ROS2 ──> PX4 SITL
 Node-RED (1880) ──┘                         Topics    Simulator
+Code Server (9999)
 ```
 
 ## Troubleshooting
 
-### Rosbridge Not Working?
+### Rosbridge Not Starting?
 
-Make sure you built the workspace:
+The workspace auto-populates from the pre-built image on first run. Check the bringup log:
 ```bash
-# In VNC (http://localhost:6080):
-cd ~/dexi_ws
-./setup.sh
-
-# Check if it's running:
 docker compose exec ros2-dev bash -c "tail -f ~/dexi_bringup.log"
 ```
 
 You should see: `Rosbridge WebSocket server started on port 9090`
 
-### Node-RED Permission Error?
+If the workspace wasn't populated (e.g., you built the image locally instead of pulling), you can build it manually:
+```bash
+# In VNC (http://localhost:6080):
+cd ~/dexi_ws
+./setup.sh
+```
+
+### Node-RED Permission Error? (Linux only)
 
 ```bash
 sudo chown -R 1000:1000 ./node-red-dexi/flows
@@ -91,6 +97,10 @@ docker compose restart node-red
 docker compose down
 docker compose up -d
 ```
+
+### Windows: Port 80 Conflict
+
+If `http://localhost` doesn't load the Ground Control dashboard, another service may be using port 80. Edit `docker-compose.yml` and change `"80:3000"` to `"8080:3000"`, then access at `http://localhost:8080`.
 
 ## Development
 
@@ -116,7 +126,7 @@ docker compose exec ros2-dev bash
 ## Multi-Architecture Support
 
 All Docker images support both **amd64** (Intel/AMD) and **arm64** (Apple Silicon, Raspberry Pi):
-- Works on x86 Linux servers
+- Works on x86 Linux/Windows PCs
 - Works on Apple M1/M2/M3 Macs
 - Works on ARM-based cloud instances
 
