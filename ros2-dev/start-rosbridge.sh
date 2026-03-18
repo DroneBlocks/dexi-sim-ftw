@@ -7,6 +7,7 @@ sleep 10
 if [ -f /home/ubuntu/dexi_ws/install/setup.bash ]; then
     echo "Starting rosbridge automatically..."
     source /opt/ros/humble/setup.bash
+    source /opt/px4_ws/install/setup.bash
     source /home/ubuntu/dexi_ws/install/setup.bash
     exec ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 else

@@ -25,6 +25,7 @@ fi
 if [ -f /home/ubuntu/dexi_ws/install/setup.bash ]; then
     echo "Starting DEXI Unity Sim bringup..."
     source /opt/ros/humble/setup.bash
+    source /opt/px4_ws/install/setup.bash
     source /home/ubuntu/dexi_ws/install/setup.bash
     exec ros2 launch dexi_bringup dexi_bringup_unity_sim.launch.py
 else
