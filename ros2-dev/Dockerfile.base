@@ -1,4 +1,4 @@
-FROM tiryoh/ros2-desktop-vnc:humble
+FROM tiryoh/ros2-desktop-vnc:jazzy
 
 # Install build dependencies
 # Note: Using --allow-insecure-repositories due to GPG time drift issues in buildx/QEMU
@@ -13,8 +13,8 @@ RUN sudo rm -rf /var/lib/apt/lists/* && \
         git && \
     sudo rm -rf /var/lib/apt/lists/*
 
-# Install pysm
-RUN sudo pip3 install pysm
+# Install pysm (--break-system-packages needed on Noble/Jazzy due to PEP 668)
+RUN sudo pip3 install --break-system-packages pysm
 
 # Install ROS2 dependencies
 RUN sudo apt-get -o Acquire::Check-Valid-Until=false \
@@ -22,10 +22,10 @@ RUN sudo apt-get -o Acquire::Check-Valid-Until=false \
                  -o Acquire::AllowDowngradeToInsecureRepositories=true \
                  update && \
     sudo apt-get -o APT::Get::AllowUnauthenticated=true install -y \
-        ros-humble-rosbridge-server \
-        ros-humble-image-transport-plugins \
-        ros-humble-cv-bridge \
-        ros-humble-camera-info-manager && \
+        ros-jazzy-rosbridge-server \
+        ros-jazzy-image-transport-plugins \
+        ros-jazzy-cv-bridge \
+        ros-jazzy-camera-info-manager && \
     sudo rm -rf /var/lib/apt/lists/*
 
 # Create workspace and clone px4_msgs
@@ -34,7 +34,7 @@ RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.16 --single
 
 # Build px4_msgs
 WORKDIR /opt/px4_ws
-RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build --packages-select px4_msgs --cmake-args -DCMAKE_BUILD_TYPE=Release"
 
 # Set up environment to auto-source px4_msgs

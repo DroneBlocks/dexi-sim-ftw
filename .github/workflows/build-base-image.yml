@@ -4,9 +4,9 @@ on:
   workflow_dispatch:  # Manual trigger
     inputs:
       tag:
-        description: 'Image tag (e.g., humble-px4-1.16.0)'
+        description: 'Image tag (e.g., jazzy-px4-1.16.0)'
         required: true
-        default: 'humble-px4-1.16.0'
+        default: 'jazzy-px4-1.16.0'
 
 jobs:
   build:

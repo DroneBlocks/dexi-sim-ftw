@@ -39,7 +39,7 @@ docker compose up -d
 
 - **PX4 SITL** - Drone flight controller simulator
 - **Unity City** - 3D environment visualization
-- **ROS2 Humble** - Robot middleware with PX4 topics
+- **ROS2 Jazzy** - Robot middleware with PX4 topics
 - **Rosbridge** - WebSocket bridge for web apps (ws://localhost:9090)
 - **Node-RED** - Flow-based drone programming
 - **Web GCS** - Browser-based ground control station
@@ -108,8 +108,7 @@ If `http://localhost` doesn't load the Ground Control dashboard, another service
 ```bash
 # In VNC:
 cd ~/dexi_ws
-colcon build
-source install/setup.bash
+./setup.sh
 ```
 
 **View Logs**:

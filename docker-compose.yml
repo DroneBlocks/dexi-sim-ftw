@@ -1,7 +1,7 @@
 services:
   ros2-dev:
     build: ./ros2-dev
-    image: droneblocks/dexi-sim-ros2:latest
+    image: droneblocks/dexi-sim-ros2:jazzy
     entrypoint: /bin/bash
     command: >
       -c "/usr/local/bin/start-dexi-bringup.sh &
@@ -25,7 +25,7 @@ services:
     tty: true
 
   micro-dds-agent:
-    image: microros/micro-ros-agent:humble
+    image: microros/micro-ros-agent:jazzy
     network_mode: "service:px4-sitl"
     command: udp4 --port 8888
     environment:

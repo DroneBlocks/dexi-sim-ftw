@@ -16,7 +16,7 @@ else
 fi
 
 # Source ROS2 and pre-built px4_msgs from base image
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 if [ -f "/opt/px4_ws/install/setup.bash" ]; then
     source /opt/px4_ws/install/setup.bash
     echo "Using pre-built px4_msgs from base image"
@@ -38,7 +38,7 @@ source install/setup.bash
 if ! grep -q "source ~/dexi_ws/install/setup.bash" ~/.bashrc 2>/dev/null; then
     echo "" >> ~/.bashrc
     echo "# Auto-source ROS2 workspace" >> ~/.bashrc
-    echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+    echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
     echo "if [ -f /opt/px4_ws/install/setup.bash ]; then source /opt/px4_ws/install/setup.bash; fi" >> ~/.bashrc
     echo "if [ -f ~/dexi_ws/install/setup.bash ]; then source ~/dexi_ws/install/setup.bash; fi" >> ~/.bashrc
     echo "Added auto-sourcing to ~/.bashrc"
@@ -55,7 +55,7 @@ if pgrep -f "ros2 launch dexi_bringup dexi_bringup_unity_sim" > /dev/null; then
     echo "To restart, run: ~/scripts/stop_dexi_bringup.sh && cd ~/dexi_ws && ./setup.sh"
 else
     echo "Starting DEXI bringup in background..."
-    nohup bash -c "source /opt/ros/humble/setup.bash && source /opt/px4_ws/install/setup.bash && source ~/dexi_ws/install/setup.bash && ros2 launch dexi_bringup dexi_bringup_unity_sim.launch.py" > ~/dexi_bringup.log 2>&1 &
+    nohup bash -c "source /opt/ros/jazzy/setup.bash && source /opt/px4_ws/install/setup.bash && source ~/dexi_ws/install/setup.bash && ros2 launch dexi_bringup dexi_bringup_unity_sim.launch.py" > ~/dexi_bringup.log 2>&1 &
     echo "DEXI bringup started! Logs available at ~/dexi_bringup.log"
 fi
 echo ""

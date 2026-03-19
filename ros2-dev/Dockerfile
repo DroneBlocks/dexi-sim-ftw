@@ -1,5 +1,5 @@
 # Use pre-built multi-arch base image (includes px4_msgs and ROS2 dependencies)
-FROM droneblocks/dexi-sim-ros2-base:humble-px4-1.16.0
+FROM droneblocks/dexi-sim-ros2-base:jazzy-px4-1.16.0
 
 WORKDIR /home/ubuntu
 

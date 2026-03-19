@@ -5,11 +5,11 @@
 #   docker build -f ros2-dev/Dockerfile.sim .
 #
 # Layer stack:
-#   ros2-base (ROS2 Humble + px4_msgs)  →  rarely changes
+#   ros2-base (ROS2 Jazzy + px4_msgs)   →  rarely changes
 #   dexi packages (colcon build)         →  changes when packages update
 #   llama-cpp-python + startup scripts   →  changes frequently
 
-FROM droneblocks/dexi-sim-ros2-base:humble-px4-1.16.0
+FROM droneblocks/dexi-sim-ros2-base:jazzy-px4-1.16.0
 
 WORKDIR /home/ubuntu
 
@@ -31,7 +31,7 @@ RUN cd /home/ubuntu/dexi_ws && \
 COPY dexi_ws/src/dexi_bringup /home/ubuntu/dexi_ws/src/dexi_bringup
 
 # Build the workspace (heavy compilation — do this before pip install for caching)
-RUN bash -c "source /opt/ros/humble/setup.bash && \
+RUN bash -c "source /opt/ros/jazzy/setup.bash && \
     source /opt/px4_ws/install/setup.bash && \
     cd /home/ubuntu/dexi_ws && \
     colcon build --packages-select \
@@ -45,14 +45,14 @@ RUN bash -c "source /opt/ros/humble/setup.bash && \
     --symlink-install"
 
 # Install llama-cpp-python for local LLM inference (after colcon to avoid QEMU memory pressure)
-RUN pip3 install --upgrade pip setuptools packaging && \
-    pip3 install llama-cpp-python==0.2.90 && \
+RUN pip3 install --break-system-packages --upgrade pip setuptools packaging && \
+    pip3 install --break-system-packages llama-cpp-python==0.2.90 && \
     rm -rf /root/.cache/pip
 
 # Stash pre-built workspace so bind mounts can be populated at runtime
 RUN cp -a /home/ubuntu/dexi_ws /opt/dexi_ws_prebuilt
 
 # Auto-source workspace
-RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
+RUN echo 'source /opt/ros/jazzy/setup.bash' >> /home/ubuntu/.bashrc && \
     echo '[ -f /opt/px4_ws/install/setup.bash ] && source /opt/px4_ws/install/setup.bash' >> /home/ubuntu/.bashrc && \
     echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
