@@ -34,7 +34,7 @@ jobs:
         with:
           context: .
           file: ./ros2-dev/Dockerfile.sim
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: droneblocks/dexi-sim-ros2:${{ inputs.tag }}
           cache-from: type=gha
