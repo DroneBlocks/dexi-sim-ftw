@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Image tag (e.g., latest, 0.1)'
+        description: 'Image tag (e.g., jazzy, latest)'
         required: true
-        default: 'latest'
+        default: 'jazzy'
 
 jobs:
   build:
@@ -36,8 +36,6 @@ jobs:
           file: ./ros2-dev/Dockerfile.sim
           platforms: linux/amd64
           push: true
-          tags: |
-            droneblocks/dexi-sim-ros2:${{ inputs.tag }}
-            droneblocks/dexi-sim-ros2:latest
+          tags: droneblocks/dexi-sim-ros2:${{ inputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
