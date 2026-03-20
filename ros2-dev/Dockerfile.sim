@@ -45,8 +45,7 @@ RUN bash -c "source /opt/ros/jazzy/setup.bash && \
     --symlink-install"
 
 # Install llama-cpp-python for local LLM inference (after colcon to avoid QEMU memory pressure)
-RUN pip3 install --break-system-packages --upgrade setuptools packaging && \
-    pip3 install --break-system-packages llama-cpp-python==0.2.90 && \
+RUN pip3 install --break-system-packages llama-cpp-python==0.2.90 && \
     rm -rf /root/.cache/pip
 
 # Stash pre-built workspace so bind mounts can be populated at runtime
