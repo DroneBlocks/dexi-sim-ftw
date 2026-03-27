@@ -50,7 +50,7 @@ RUN bash -c "source /opt/ros/humble/setup.bash && \
 
 # Install llama-cpp-python for local LLM inference (after colcon to avoid QEMU memory pressure)
 RUN pip3 install --upgrade pip setuptools packaging && \
-    pip3 install llama-cpp-python==0.2.90 && \
+    pip3 install "numpy<2" llama-cpp-python==0.2.90 && \
     rm -rf /root/.cache/pip
 
 # Stash pre-built workspace so bind mounts can be populated at runtime
