@@ -39,5 +39,7 @@ jobs:
           tags: |
             droneblocks/dexi-sim-ros2:${{ inputs.tag }}
             droneblocks/dexi-sim-ros2:latest
+          build-args: |
+            CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

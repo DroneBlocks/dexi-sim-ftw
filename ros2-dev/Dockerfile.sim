@@ -22,6 +22,10 @@ RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
 # Copy dexi.repos to import external dependencies
 COPY dexi_ws/src/dexi_bringup/dexi.repos /home/ubuntu/dexi_ws/src/dexi_bringup/dexi.repos
 
+# Cache-bust: dexi.repos pins 'main' branches, so we need to force
+# fresh clones when upstream repos change (e.g. new interfaces/messages)
+ARG CACHE_BUST=1
+
 # Import all dependencies via vcs (clones apriltag, rosbridge, etc.)
 RUN cd /home/ubuntu/dexi_ws && \
     vcs import src < src/dexi_bringup/dexi.repos
