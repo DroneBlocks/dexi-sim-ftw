@@ -11,5 +11,5 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
     colcon build --packages-select dexi_yolo"
 
 # Replace standard bringup with AVR version (adds YOLO auto-launch)
-COPY start-dexi-bringup-avr.sh /usr/local/bin/start-dexi-bringup.sh
+COPY ros2-dev/start-dexi-bringup-avr.sh /usr/local/bin/start-dexi-bringup.sh
 RUN chmod +x /usr/local/bin/start-dexi-bringup.sh
