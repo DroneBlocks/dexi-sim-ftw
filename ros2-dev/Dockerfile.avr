@@ -1,0 +1,15 @@
+# AVR variant: extends standard ROS2 image with YOLO object detection
+FROM droneblocks/dexi-sim-ros2:latest
+
+# Install YOLO runtime dependency
+RUN pip3 install onnxruntime
+
+# Build dexi_yolo package (source already cloned via dexi.repos in prebuilt workspace)
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+    source /opt/dexi_ws_prebuilt/install/setup.bash && \
+    cd /opt/dexi_ws_prebuilt && \
+    colcon build --packages-select dexi_yolo"
+
+# Replace standard bringup with AVR version (adds YOLO auto-launch)
+COPY start-dexi-bringup-avr.sh /usr/local/bin/start-dexi-bringup.sh
+RUN chmod +x /usr/local/bin/start-dexi-bringup.sh
