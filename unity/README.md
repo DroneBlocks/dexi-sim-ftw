@@ -1,57 +1,62 @@
-# DEXI City
+# Unity Sim Environments
 
-Unity WebGL sim served via Docker.
+Each subfolder contains a self-contained Unity WebGL sim with its own Dockerfile, nginx config, and build artifacts.
 
-## Building Multi-Architecture Images
+## Sims
 
-To support both ARM64 (Mac, Raspberry Pi) and AMD64 (Intel/AMD servers), build and push multi-architecture images:
+| Sim | Image | Description |
+|-----|-------|-------------|
+| `dexi-sim` | `droneblocks/dexi-sitl-city` | Standard DEXI city environment |
+| `avr-2025-sim` | `droneblocks/avr-2025-sim` | AVR 2025 competition environment |
 
-### One-Time Setup
+## Directory Structure
 
-Create a buildx builder (only needed once):
-```bash
-docker buildx create --name multiarch --driver docker-container --use
-docker buildx inspect --bootstrap
+```
+unity/
+├── avr-2025-sim/
+│   ├── Build/          # Unity WebGL build artifacts
+│   ├── index.html      # UI with rosbridge, virtual joystick, keyboard controls
+│   ├── Dockerfile
+│   └── nginx.conf
+└── dexi-sim/
+    ├── Build/
+    ├── index.html
+    ├── Dockerfile
+    └── nginx.conf
 ```
 
-### Build and Push Multi-Arch Image
+## Building
 
-Build for both ARM64 and AMD64 platforms and push to Docker Hub:
+All builds use `unity/` as the Docker context with each sim's Dockerfile.
+
+### Local build (current platform)
+
+```bash
+# AVR 2025 sim
+docker build -f unity/avr-2025-sim/Dockerfile -t droneblocks/avr-2025-sim:latest unity/
+
+# Standard DEXI sim
+docker build -f unity/dexi-sim/Dockerfile -t droneblocks/dexi-sitl-city:latest unity/
+```
+
+### Multi-arch build and push
+
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 \
-  --no-cache \
+  -f unity/avr-2025-sim/Dockerfile \
+  -t droneblocks/avr-2025-sim:latest \
+  --push unity/
+
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -f unity/dexi-sim/Dockerfile \
   -t droneblocks/dexi-sitl-city:latest \
-  --push \
-  .
+  --push unity/
 ```
 
-**Note**: Multi-platform builds require `--push` to push directly to a registry (Docker Hub). Make sure you're logged in first:
+## Running
+
 ```bash
-docker login
+docker run -d --restart=unless-stopped -p 1337:1337 droneblocks/avr-2025-sim:latest
 ```
 
-### Single Platform Build (Local Development)
-
-For local testing on your current platform only:
-```bash
-docker build --no-cache -t droneblocks/dexi-sitl-city:latest .
-```
-
-## Running with Docker
-
-Run the container (in background, auto-restart on reboot):
-```bash
-docker run -d --restart=unless-stopped -p 1337:1337 --name dexi-city droneblocks/dexi-sitl-city:latest
-```
-
-Access the sim at `http://localhost:1337`
-
-Stop the container:
-```bash
-docker stop dexi-city
-```
-
-Remove the container:
-```bash
-docker rm dexi-city
-```
+Access at `http://localhost:1337`

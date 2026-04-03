@@ -87,7 +87,9 @@ services:
     tty: true
 
   unity-sim:
-    build: ./unity
+    build:
+      context: ./unity
+      dockerfile: dexi-sim/Dockerfile
     image: droneblocks/dexi-sitl-city:latest
     ports:
       - "1337:1337"
