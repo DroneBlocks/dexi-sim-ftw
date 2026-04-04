@@ -1,0 +1,12 @@
+services:
+  ros2-dev:
+    build:
+      context: .
+      dockerfile: ros2-dev/Dockerfile.avr
+    image: droneblocks/dexi-avr-ros2:latest
+
+  unity-sim:
+    build:
+      context: ./unity
+      dockerfile: avr-2025-sim/Dockerfile
+    image: droneblocks/avr-2025-sim:latest
