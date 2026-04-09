@@ -62,6 +62,7 @@ services:
     environment:
       - ROSBRIDGE_URL=ws://ros2-dev:9090
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CHAT_LOG_URL=${CHAT_LOG_URL}
     depends_on:
       - ros2-dev
     stdin_open: true
