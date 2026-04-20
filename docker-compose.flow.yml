@@ -1,0 +1,16 @@
+# Override to swap the GPS slim Gazebo image for the optical-flow variant.
+# Keeps docker-compose.yml and the droneblocks/px4-gazebo-slim:1.16.0 image
+# untouched — this file only redirects the px4-sitl service to the flow
+# build so we can test indoor, GPS-less behavior end-to-end against the
+# same ROS2 / code-server / DroneBlocks stack.
+#
+# Usage:
+#   # Build once
+#   docker compose -f docker-compose.yml -f docker-compose.flow.yml build px4-sitl
+#
+#   # Run the full stack with flow-only PX4
+#   docker compose -f docker-compose.yml -f docker-compose.flow.yml up -d
+services:
+  px4-sitl:
+    build: ./px4-gazebo-slim-flow
+    image: droneblocks/px4-gazebo-slim-flow:1.16.0
