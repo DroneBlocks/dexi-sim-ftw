@@ -11,3 +11,7 @@ RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
 
 # Auto-source dexi_ws if it exists (volume-mounted at runtime)
 RUN echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
+
+# Healthcheck: Wait for Rosbridge (9090) to be ready
+HEALTHCHECK --interval=5s --timeout=3s --start-period=30s --retries=5 \
+  CMD python3 -c "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.connect(('localhost', 9090))" || exit 1
