@@ -10,3 +10,23 @@ services:
       context: ./unity
       dockerfile: avr-2025-sim/Dockerfile
     image: droneblocks/avr-2025-sim:latest
+
+  avr-validator:
+    image: droneblocks/avr-2025-game-validator:latest
+    restart: unless-stopped
+    ports:
+      - "1881:1880"  # TESTING ONLY — remove before launch
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.9
+        aliases:
+          - avr-validator
+    environment:
+      - ROS2_WEBSOCKET_URL=ws://ros2-dev:9090
+      - DEMO_ID=${DEMO_ID:-local-dev}
+      - SCORE_SUBMIT_URL=${SCORE_SUBMIT_URL:-}
+      - SCORE_HMAC_SECRET=${SCORE_HMAC_SECRET:-dev-secret-change-me}
+    depends_on:
+      - ros2-dev
+    stdin_open: true
+    tty: true
