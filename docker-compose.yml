@@ -63,6 +63,12 @@ services:
       - ROSBRIDGE_URL=ws://ros2-dev:9090
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - CHAT_LOG_URL=${CHAT_LOG_URL}
+      # Branded-URL injection from cloud-init when running on a tunneled cloud
+      # sim. Empty defaults keep local `docker compose up` working unchanged
+      # (the GCS falls back to ${hostname}:port logic).
+      - NUXT_PUBLIC_SIM_URL=${NUXT_PUBLIC_SIM_URL:-}
+      - NUXT_PUBLIC_ROSBRIDGE_URL=${NUXT_PUBLIC_ROSBRIDGE_URL:-}
+      - NUXT_PUBLIC_NODE_RED_URL=${NUXT_PUBLIC_NODE_RED_URL:-}
     depends_on:
       - ros2-dev
     stdin_open: true
