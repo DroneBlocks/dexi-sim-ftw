@@ -69,6 +69,7 @@ services:
       - NUXT_PUBLIC_SIM_URL=${NUXT_PUBLIC_SIM_URL:-}
       - NUXT_PUBLIC_ROSBRIDGE_URL=${NUXT_PUBLIC_ROSBRIDGE_URL:-}
       - NUXT_PUBLIC_NODE_RED_URL=${NUXT_PUBLIC_NODE_RED_URL:-}
+      - NUXT_PUBLIC_VSCODE_URL=${NUXT_PUBLIC_VSCODE_URL:-}
     depends_on:
       - ros2-dev
     stdin_open: true
