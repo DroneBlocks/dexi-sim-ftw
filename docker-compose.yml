@@ -125,7 +125,11 @@ services:
     volumes:
       - ./dexi-mavsdk:/home/coder/dexi-mavsdk
       - ./dexi_ws:/home/coder/dexi_ws
-    command: --auth password --cert
+    # Serve plain HTTP on the origin. TLS is terminated at the Cloudflare
+    # tunnel edge for cloud sims; localhost-only for local docker (browsers
+    # accept HTTP on localhost without warning). With --cert (self-signed
+    # HTTPS), code-server redirects HTTP→HTTPS and Cloudflare loops it.
+    command: --auth password
     restart: unless-stopped
     stdin_open: true
     tty: true
