@@ -8,3 +8,6 @@
 [submodule "dexi-mavsdk"]
 	path = dexi-mavsdk
 	url = https://github.com/DroneBlocks/dexi-mavsdk.git
+[submodule "dexi-mavsdk-basics"]
+	path = dexi-mavsdk-basics
+	url = https://github.com/DroneBlocks/dexi-mavsdk-basics.git

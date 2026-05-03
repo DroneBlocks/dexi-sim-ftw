@@ -124,6 +124,7 @@ services:
       - PASSWORD=droneblocks
     volumes:
       - ./dexi-mavsdk:/home/coder/dexi-mavsdk
+      - ./dexi-mavsdk-basics:/home/coder/dexi-mavsdk-basics
       - ./dexi_ws:/home/coder/dexi_ws
     # Serve plain HTTP on the origin. TLS is terminated at the Cloudflare
     # tunnel edge for cloud sims; localhost-only for local docker (browsers
