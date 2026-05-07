@@ -9,6 +9,12 @@ services:
     ports:
       - "6080:80"
       - "9090:9090"  # Rosbridge websocket
+    # CleanBrowsing Family Filter — blocks adult/proxy/VPN/phishing domains.
+    # Pairs with the Firefox purge in ros2-dev/Dockerfile to keep the cloud-sim
+    # VNC desktop from being a free general-purpose web terminal.
+    dns:
+      - 185.228.168.168
+      - 185.228.169.168
     networks:
       dexi-network:
         ipv4_address: 172.20.0.2
