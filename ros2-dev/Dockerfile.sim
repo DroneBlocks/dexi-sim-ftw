@@ -65,11 +65,25 @@ RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
 # from their host browser (port 6080 noVNC, port 80 web-dashboard); they have
 # no need to browse the open web from inside the container. AVR image inherits
 # this since Dockerfile.avr is FROM droneblocks/dexi-sim-ros2:latest.
-RUN sudo apt-get update && \
-    sudo apt-get purge -y firefox firefox-esr chromium chromium-browser epiphany-browser konqueror midori 2>/dev/null || true && \
-    sudo apt-get autoremove -y && \
-    sudo rm -rf /var/lib/apt/lists/* \
-                /usr/share/applications/firefox*.desktop \
-                /usr/share/applications/chromium*.desktop \
-                /home/ubuntu/Desktop/firefox*.desktop \
-                /home/ubuntu/Desktop/chromium*.desktop
+#
+# tiryoh/ros2-desktop-vnc:humble installs Firefox by extracting a Mozilla
+# tarball into /opt and symlinking /usr/bin/firefox, so apt has no record of
+# the package. We do both: purge anything apt knows about AND nuke the on-disk
+# files, so this works regardless of installation method.
+RUN sudo bash -c 'set -e; \
+    apt-get update; \
+    pkgs=$(dpkg-query -W -f="\${Package}\n" "firefox*" "chromium*" "epiphany*" "midori*" "konqueror*" 2>/dev/null | tr "\n" " "); \
+    if [ -n "$pkgs" ]; then apt-get purge -y $pkgs; fi; \
+    apt-get autoremove -y; \
+    rm -rf /usr/bin/firefox* /usr/bin/chromium* \
+           /usr/lib/firefox* /usr/lib/chromium* \
+           /opt/firefox* /opt/chromium* \
+           /snap/firefox /snap/chromium; \
+    find /usr/share/applications /etc/skel/Desktop /home/ubuntu/Desktop /home/ubuntu/.local/share/applications \
+         \( -iname "firefox*.desktop" -o -iname "chromium*.desktop" \) \
+         -delete 2>/dev/null || true; \
+    rm -rf /var/lib/apt/lists/*; \
+    echo "=== Verification: should be empty ==="; \
+    ls /usr/bin/firefox* /usr/bin/chromium* 2>/dev/null; \
+    find /usr/share/applications /home/ubuntu/Desktop -iname "*firefox*" -o -iname "*chromium*" 2>/dev/null; \
+    echo "=== End verification ==="'

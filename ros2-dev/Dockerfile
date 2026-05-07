@@ -12,14 +12,18 @@ RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
 # Auto-source dexi_ws if it exists (volume-mounted at runtime)
 RUN echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
 
-# Strip browsers from the VNC desktop. Cloud-sim students access the dashboard
-# from their host browser (port 6080 noVNC, port 80 web-dashboard); they have
-# no need to browse the open web from inside the container.
-RUN sudo apt-get update && \
-    sudo apt-get purge -y firefox firefox-esr chromium chromium-browser epiphany-browser konqueror midori 2>/dev/null || true && \
-    sudo apt-get autoremove -y && \
-    sudo rm -rf /var/lib/apt/lists/* \
-                /usr/share/applications/firefox*.desktop \
-                /usr/share/applications/chromium*.desktop \
-                /home/ubuntu/Desktop/firefox*.desktop \
-                /home/ubuntu/Desktop/chromium*.desktop
+# Strip browsers from the VNC desktop. See Dockerfile.sim for the production
+# equivalent and rationale (tiryoh ships Firefox via /opt tarball, not apt).
+RUN sudo bash -c 'set -e; \
+    apt-get update; \
+    pkgs=$(dpkg-query -W -f="\${Package}\n" "firefox*" "chromium*" "epiphany*" "midori*" "konqueror*" 2>/dev/null | tr "\n" " "); \
+    if [ -n "$pkgs" ]; then apt-get purge -y $pkgs; fi; \
+    apt-get autoremove -y; \
+    rm -rf /usr/bin/firefox* /usr/bin/chromium* \
+           /usr/lib/firefox* /usr/lib/chromium* \
+           /opt/firefox* /opt/chromium* \
+           /snap/firefox /snap/chromium; \
+    find /usr/share/applications /etc/skel/Desktop /home/ubuntu/Desktop /home/ubuntu/.local/share/applications \
+         \( -iname "firefox*.desktop" -o -iname "chromium*.desktop" \) \
+         -delete 2>/dev/null || true; \
+    rm -rf /var/lib/apt/lists/*'
