@@ -36,6 +36,7 @@ jobs:
           file: ./ros2-dev/Dockerfile.avr
           platforms: linux/amd64
           push: true
+          pull: true
           tags: |
             droneblocks/dexi-avr-ros2:${{ inputs.tag }}
             droneblocks/dexi-avr-ros2:latest

@@ -36,6 +36,7 @@ jobs:
           file: ./ros2-dev/Dockerfile.sim
           platforms: linux/amd64
           push: true
+          pull: true
           tags: |
             droneblocks/dexi-sim-ros2:${{ inputs.tag }}
             droneblocks/dexi-sim-ros2:latest
