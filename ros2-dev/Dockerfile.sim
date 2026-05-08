@@ -83,7 +83,7 @@ RUN sudo bash -c 'set -e; \
          \( -iname "firefox*.desktop" -o -iname "chromium*.desktop" \) \
          -delete 2>/dev/null || true; \
     rm -rf /var/lib/apt/lists/*; \
-    echo "=== Verification: should be empty ==="; \
-    ls /usr/bin/firefox* /usr/bin/chromium* 2>/dev/null; \
-    find /usr/share/applications /home/ubuntu/Desktop -iname "*firefox*" -o -iname "*chromium*" 2>/dev/null; \
+    echo "=== Verification (any output below is a leftover) ==="; \
+    { ls -d /usr/bin/firefox* /usr/bin/chromium* /usr/lib/firefox* /usr/lib/chromium* /opt/firefox* /opt/chromium* 2>/dev/null || true; } | grep . || echo "(no binaries)"; \
+    { find /usr/share/applications /home/ubuntu/Desktop /etc/skel/Desktop \( -iname "*firefox*" -o -iname "*chromium*" \) 2>/dev/null || true; } | grep . || echo "(no desktop entries)"; \
     echo "=== End verification ==="'
