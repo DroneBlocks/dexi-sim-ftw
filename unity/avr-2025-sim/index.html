@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DEXI Drone Simulator</title>
-    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -22,58 +21,18 @@
         .loading-text { font-size: 18px; margin-bottom: 20px; }
         .progress-bar { width: 300px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); width: 0%; transition: width 0.3s ease; }
-
-        #ros-hud {
-            position: absolute; top: 10px; right: 10px; z-index: 100;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 13px; color: #fff; pointer-events: none; user-select: none;
-        }
-        #ros-mode-badge {
-            display: inline-block; padding: 6px 14px; border-radius: 6px;
-            font-weight: 600; font-size: 12px; letter-spacing: 0.5px;
-            pointer-events: auto; cursor: pointer; transition: all 0.2s;
-        }
-        #ros-mode-badge.off { background: rgba(80,80,80,0.8); border: 1px solid rgba(255,255,255,0.2); }
-        #ros-mode-badge.on { background: rgba(76,175,80,0.9); border: 1px solid rgba(76,175,80,0.6); }
-        #ros-mode-badge.connecting { background: rgba(255,152,0,0.9); border: 1px solid rgba(255,152,0,0.6); }
-        #ros-keys {
-            margin-top: 6px; padding: 4px 10px; background: rgba(0,0,0,0.6);
-            border-radius: 4px; font-family: monospace; font-size: 12px; display: none;
-        }
-        #ros-keys.visible { display: block; }
-        #ros-help {
-            margin-top: 6px; padding: 8px 12px; background: rgba(0,0,0,0.75);
-            border-radius: 6px; font-size: 11px; line-height: 1.6; display: none;
-        }
-        #ros-help.visible { display: block; }
-        #ros-help .key {
-            display: inline-block; background: rgba(255,255,255,0.15);
-            padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 11px;
-        }
     </style>
 </head>
 <body>
     <div id="unity-container">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <canvas id="unity-canvas" tabindex="1"></canvas>
         <div id="loading-overlay">
             <div class="loading-text">Loading DEXI Simulator...</div>
             <div class="progress-bar"><div class="progress-bar-fill" id="progress-bar"></div></div>
         </div>
-        <div id="ros-hud">
-            <div id="ros-mode-badge" class="off" onclick="toggleRosMode()">ROS MODE [Tab]</div>
-            <div id="ros-keys"></div>
-            <div id="ros-help">
-                <span class="key">T</span> Arm + Takeoff &nbsp;
-                <span class="key">L</span> Land<br>
-                <span class="key">W</span><span class="key">S</span> Up/Down &nbsp;
-                <span class="key">A</span><span class="key">D</span> Yaw<br>
-                <span class="key">&uarr;</span><span class="key">&darr;</span><span class="key">&larr;</span><span class="key">&rarr;</span> Move
-            </div>
-        </div>
     </div>
 
     <script>
-        // --- Unity Loader ---
         var buildUrl = "Build";
         var loaderUrl = buildUrl + "/avr-2025-sim.loader.js";
         var config = {
@@ -81,9 +40,9 @@
             frameworkUrl: buildUrl + "/avr-2025-sim.framework.js.gz",
             codeUrl: buildUrl + "/avr-2025-sim.wasm.gz",
             streamingAssetsUrl: "StreamingAssets",
-            companyName: "DroneBlocks",
-            productName: "DEXI Simulator",
-            productVersion: "1.0.0"
+            companyName: "DefaultCompany",
+            productName: "DEXI Drone Simulator",
+            productVersion: "0.1.0",
         };
 
         var canvas = document.querySelector("#unity-canvas");
@@ -97,263 +56,22 @@
                 progressBarFill.style.width = 100 * progress + "%";
             }).then((unityInstance) => {
                 loadingOverlay.classList.add("hidden");
-                console.log("Unity loaded successfully");
+                // Give Unity canvas focus so keyboard input works immediately
+                canvas.focus();
             }).catch((message) => {
-                alert("Failed to load Unity: " + message);
+                alert("Failed to load: " + message);
             });
         };
         script.onerror = () => { alert("Failed to load Unity loader script"); };
         document.body.appendChild(script);
 
-        // Auto-enable ROS mode on load
-        setTimeout(function() { toggleRosMode(); }, 500);
+        // Keep Unity canvas focused — prevent clicks outside from stealing focus
+        document.addEventListener('click', () => { canvas.focus(); });
 
-        // --- ROS Keyboard Control ---
-        //
-        // Uses the offboard manager for everything via topic + service.
-        // After takeoff, a 10Hz loop continuously sends set_velocity_body:
-        //   - Keys held: nonzero velocity (movement)
-        //   - Keys released: zero velocity (each call triggers stopVelocity in the manager,
-        //     which captures CURRENT position as hold target — so continuous zeros at 10Hz
-        //     keep updating the hold target to "right here", preventing snap-back)
-        // Before landing: stop loop, send stop_velocity, call land service.
-        //
-        // No C++ changes needed. No pause_setpoints. No direct PX4 publishing.
-
-        var ros = null;
-        var cmdPublisher = null;
-        var cmdService = null;
-        var rosConnected = false;
-        var rosActive = false;
-        var inFlight = false;
-        var activeKeys = new Set();
-        var velocityInterval = null;
-
-        var XY_SPEED = 0.5;    // m/s
-        var Z_SPEED = 0.3;     // m/s
-        var YAW_RATE = 30.0;   // deg/s
-
-        var velocityKeys = new Set(['w','s','a','d','arrowup','arrowdown','arrowleft','arrowright']);
-        var keyLabels = {
-            'arrowup':'\u2191','arrowdown':'\u2193','arrowleft':'\u2190','arrowright':'\u2192',
-            'w':'W','s':'S','a':'A','d':'D'
-        };
-
-        // --- Connection ---
-        function getRosBridgeUrl() {
-            var p = new URLSearchParams(window.location.search).get('rosbridge');
-            if (p) return p;
-            if (window.location.protocol === 'https:')
-                return 'wss://' + window.location.hostname + '/rosbridge';
-            return 'ws://' + window.location.hostname + ':9090';
-        }
-
-        function connectROS() {
-            if (ros && rosConnected) return;
-            updateBadge('connecting');
-            ros = new ROSLIB.Ros({ url: getRosBridgeUrl() });
-
-            ros.on('connection', function() {
-                console.log('ROS connected');
-                rosConnected = true;
-                // Re-blur canvas in case Unity recaptured focus during async connect
-                if (rosActive) { canvas.tabIndex = -9999; canvas.blur(); }
-                cmdPublisher = new ROSLIB.Topic({
-                    ros: ros, name: '/dexi/offboard_manager',
-                    messageType: 'dexi_interfaces/msg/OffboardNavCommand'
-                });
-                cmdService = new ROSLIB.Service({
-                    ros: ros, name: '/dexi/execute_blockly_command',
-                    serviceType: 'dexi_interfaces/srv/ExecuteBlocklyCommand'
-                });
-                updateBadge('on');
-            });
-
-            ros.on('error', function() { rosConnected = false; updateBadge('off'); });
-            ros.on('close', function() {
-                rosConnected = false;
-                cmdPublisher = null; cmdService = null;
-                updateBadge('off');
-            });
-        }
-
-        function disconnectROS() {
-            activeKeys.clear();
-            if (velocityInterval) { clearInterval(velocityInterval); velocityInterval = null; }
-            if (rosConnected && cmdPublisher) {
-                publishVelocity(0, 0, 0, 0); // final zero
-            }
-            inFlight = false;
-            if (ros) { ros.close(); ros = null; }
-            rosConnected = false;
-            cmdPublisher = null; cmdService = null;
-            updateBadge('off');
-            updateKeysDisplay();
-        }
-
-        function toggleRosMode() {
-            if (rosActive) {
-                // Switch to Unity mode — stop sending velocity but keep ROS connected
-                rosActive = false;
-                activeKeys.clear();
-                stopVelocityLoop();
-                updateKeysDisplay();
-                if (inFlight) publishVelocity(0, 0, 0, 0); // hold position
-                canvas.tabIndex = -1;
-                canvas.focus();
-                updateBadge('off');
-            } else {
-                // Switch to ROS mode — connect if needed, resume keyboard control
-                rosActive = true;
-                canvas.tabIndex = -9999;
-                canvas.blur();
-                if (!rosConnected) {
-                    connectROS();
-                } else {
-                    updateBadge('on');
-                }
-            }
-        }
-
-        canvas.addEventListener('focus', function() { if (rosActive) canvas.blur(); });
-
-        // --- UI ---
-        function updateBadge(state) {
-            var badge = document.getElementById('ros-mode-badge');
-            var help = document.getElementById('ros-help');
-            badge.className = state;
-            if (state === 'on')              { badge.textContent = 'ROS MODE ON [Tab]'; help.classList.add('visible'); }
-            else if (state === 'connecting') { badge.textContent = 'CONNECTING...'; help.classList.remove('visible'); }
-            else                             { badge.textContent = 'ROS MODE [Tab]'; help.classList.remove('visible'); }
-        }
-
-        function updateKeysDisplay() {
-            var el = document.getElementById('ros-keys');
-            if (activeKeys.size > 0) {
-                var labels = [];
-                activeKeys.forEach(function(k) { labels.push(keyLabels[k] || k.toUpperCase()); });
-                el.textContent = labels.join(' + ');
-                el.classList.add('visible');
-            } else { el.classList.remove('visible'); }
-        }
-
-        // --- Service call ---
-        function callService(command, parameter, timeout) {
-            return new Promise(function(resolve, reject) {
-                if (!rosConnected || !cmdService) { reject('not connected'); return; }
-                cmdService.callService(
-                    new ROSLIB.ServiceRequest({
-                        command: command, parameter: parameter || 0.0, timeout: timeout || 30.0,
-                        north: 0.0, east: 0.0, down: 0.0, yaw: 0.0,
-                        index: 0, r: 0, g: 0, b: 0
-                    }),
-                    function(result) {
-                        console.log('Service:', command, result.success ? 'OK' : 'FAIL', result.message);
-                        resolve(result);
-                    },
-                    function(error) { console.error('Service error:', command, error); reject(error); }
-                );
-            });
-        }
-
-        // --- Velocity via offboard manager topic ---
-        function publishVelocity(vx, vy, vz, yawRate) {
-            if (!rosConnected || !cmdPublisher) return;
-            cmdPublisher.publish(new ROSLIB.Message({
-                command: 'set_velocity_body',
-                distance_or_degrees: 0.0,
-                north: vx, east: vy, down: vz, yaw: yawRate
-            }));
-        }
-
-        function computeAndSendVelocity() {
-            var vx = 0, vy = 0, vz = 0, yawRate = 0;
-            if (activeKeys.has('arrowup'))    vx += XY_SPEED;
-            if (activeKeys.has('arrowdown'))  vx -= XY_SPEED;
-            if (activeKeys.has('arrowright')) vy += XY_SPEED;
-            if (activeKeys.has('arrowleft')) vy -= XY_SPEED;
-            if (activeKeys.has('w')) vz -= Z_SPEED;
-            if (activeKeys.has('s')) vz += Z_SPEED;
-            if (activeKeys.has('d')) yawRate += YAW_RATE;
-            if (activeKeys.has('a')) yawRate -= YAW_RATE;
-            publishVelocity(vx, vy, vz, yawRate);
-        }
-
-        function startVelocityLoop() {
-            if (velocityInterval) return;
-            velocityInterval = setInterval(computeAndSendVelocity, 100); // 10Hz
-        }
-
-        function stopVelocityLoop() {
-            if (velocityInterval) { clearInterval(velocityInterval); velocityInterval = null; }
-        }
-
-        // --- Keyboard ---
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') { e.preventDefault(); toggleRosMode(); return; }
-            if (!rosActive || !rosConnected) return;
-            var key = e.key.toLowerCase();
-
-            // Takeoff
-            if (key === 't' && !inFlight) {
+        // Prevent browser defaults for keys Unity needs
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Tab'].includes(e.key)) {
                 e.preventDefault();
-                updateBadge('connecting');
-                document.getElementById('ros-mode-badge').textContent = 'ARMING...';
-                callService('arm', 0, 10).then(function() {
-                    document.getElementById('ros-mode-badge').textContent = 'TAKING OFF...';
-                    return callService('offboard_takeoff', 2.0, 30);
-                }).then(function() {
-                    inFlight = true;
-                    updateBadge('on');
-                    console.log('Airborne — keyboard control ready');
-                }).catch(function(err) {
-                    console.error('Takeoff failed:', err);
-                    updateBadge('on');
-                });
-                return;
-            }
-
-            // Land
-            if (key === 'l' && inFlight) {
-                e.preventDefault();
-                activeKeys.clear();
-                stopVelocityLoop();
-                updateKeysDisplay();
-                callService('land', 0, 30).then(function() {
-                    inFlight = false;
-                    console.log('Landed');
-                });
-                return;
-            }
-
-            // Velocity keys — start loop on first key press
-            // Allow velocity even if inFlight wasn't set (e.g., page refresh while airborne)
-            if (velocityKeys.has(key)) {
-                e.preventDefault();
-                activeKeys.add(key);
-                updateKeysDisplay();
-                startVelocityLoop();
-            }
-        });
-
-        document.addEventListener('keyup', function(e) {
-            var key = e.key.toLowerCase();
-            // Always clear released keys to prevent stuck state
-            if (velocityKeys.has(key) && activeKeys.has(key)) {
-                e.preventDefault();
-                activeKeys.delete(key);
-                updateKeysDisplay();
-                if (activeKeys.size === 0 && velocityInterval) {
-                    stopVelocityLoop();
-                    if (rosConnected) publishVelocity(0, 0, 0, 0);
-                }
-            }
-        });
-
-        window.addEventListener('blur', function() {
-            if (activeKeys.size > 0) {
-                activeKeys.clear();
-                updateKeysDisplay();
             }
         });
     </script>
