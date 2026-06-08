@@ -44,15 +44,60 @@ services:
     build: ./px4-gazebo-slim
     image: droneblocks/px4-gazebo-slim:1.16.0
     # Pass target IPs for MAVLink: [API IP, QGC IP]
-    # - First arg (IP_API): MAVSDK receives on port 14540
-    # - Second arg (IP_QGC): QGC receives on port 14550
-    # Sending API to code-server (172.20.0.8) for MAVSDK dev
-    command: ["172.20.0.8", "172.20.0.8"]
+    # Both streams now target mavlink-router (172.20.0.9). The router fans
+    # out to code-server (preserving the existing MAVSDK flow), mavlink2rest
+    # (browser GCS chrome), and external host ports.
+    command: ["172.20.0.9", "172.20.0.9"]
     networks:
       dexi-network:
         ipv4_address: 172.20.0.4
     volumes:
       - ./dexi-mavsdk:/root/dexi-mavsdk
+    depends_on:
+      - mavlink-router
+    stdin_open: true
+    tty: true
+
+  # mavlink-router fans the PX4 MAVLink stream out to code-server (MAVSDK),
+  # mavlink2rest (browser GCS), and external host ports. See
+  # mavlink-router/config/main.conf for the endpoint topology + the
+  # loop-prevention rationale for separate PX4-side and client-side ports.
+  mavlink-router:
+    build: ./mavlink-router
+    image: droneblocks/dexi-sim-mavlink-router:latest
+    ports:
+      - "5760:5760"            # TCP for QGC / MissionPlanner on the host
+      - "14550:24550/udp"      # UDP GCS (clients on host see standard port)
+      - "14540:24540/udp"      # UDP MAVSDK offboard (host standard port)
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.9
+        aliases:
+          - mavlink-router
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # mavlink2rest exposes REST + WebSocket on host port 8088 — the source the
+  # browser GCS chrome (ReadinessStrip, useTelemetry, useMavlinkCommand)
+  # consumes. Pulls from mavlink-router's dedicated 14770 endpoint to dodge
+  # the sysid-loop-prevention trap.
+  mavlink2rest:
+    build: ./mavlink2rest
+    image: droneblocks/dexi-sim-mavlink2rest:latest
+    command:
+      - --connect=udpout:172.20.0.9:14770
+      - --server=0.0.0.0:8088
+    ports:
+      - "8088:8088"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.10
+        aliases:
+          - mavlink2rest
+    depends_on:
+      - mavlink-router
+    restart: unless-stopped
     stdin_open: true
     tty: true
 
