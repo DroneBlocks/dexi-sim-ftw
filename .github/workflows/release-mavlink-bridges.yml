@@ -1,0 +1,65 @@
+name: Release MAVLink bridge images
+
+# Publishes droneblocks/dexi-sim-mavlink-router and
+# droneblocks/dexi-sim-mavlink2rest multi-arch images to Docker Hub so
+# `docker compose up` on cloud sim deploys is instant instead of a 5-9 min
+# source compile.
+#
+# Trigger manually from the Actions tab. Builds both bridges in parallel.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag (e.g., 1.0.2, latest)'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bridge:
+          - name: mavlink-router
+            context: ./mavlink-router
+            image: droneblocks/dexi-sim-mavlink-router
+          - name: mavlink2rest
+            context: ./mavlink2rest
+            image: droneblocks/dexi-sim-mavlink2rest
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.bridge.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.bridge.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ matrix.bridge.image }}:${{ inputs.tag }}
+            ${{ matrix.bridge.image }}:latest
+          cache-from: type=gha,scope=${{ matrix.bridge.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.bridge.name }}
+
+      - name: Summary
+        run: |
+          echo "## ${{ matrix.bridge.name }} published" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ matrix.bridge.image }}:${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Platforms:** linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
