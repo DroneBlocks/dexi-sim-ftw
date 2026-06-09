@@ -1,7 +1,7 @@
 # mavlink2rest for the default dexi-sim-ftw stack
 #
 # Identical to sim-outdoor/mavlink2rest's Dockerfile — same upstream, same
-# pinned SHA, same multi-arch build. Default CMD's IP differs (172.20.0.9
+# pinned SHA, same multi-arch build. Default CMD's IP differs (172.20.0.11
 # = mavlink-router in this stack's network).
 
 FROM rust:alpine AS build
@@ -31,4 +31,4 @@ EXPOSE 8088/tcp
 
 # Defaults — overridable from docker-compose `command:`.
 ENTRYPOINT ["/usr/local/bin/mavlink2rest"]
-CMD ["--connect=udpout:172.20.0.9:14770", "--server=0.0.0.0:8088"]
+CMD ["--connect=udpout:172.20.0.11:14770", "--server=0.0.0.0:8088"]

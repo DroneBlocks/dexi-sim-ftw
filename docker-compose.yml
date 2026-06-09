@@ -44,10 +44,10 @@ services:
     build: ./px4-gazebo-slim
     image: droneblocks/px4-gazebo-slim:1.16.0
     # Pass target IPs for MAVLink: [API IP, QGC IP]
-    # Both streams now target mavlink-router (172.20.0.9). The router fans
+    # Both streams now target mavlink-router (172.20.0.11). The router fans
     # out to code-server (preserving the existing MAVSDK flow), mavlink2rest
     # (browser GCS chrome), and external host ports.
-    command: ["172.20.0.9", "172.20.0.9"]
+    command: ["172.20.0.11", "172.20.0.11"]
     networks:
       dexi-network:
         ipv4_address: 172.20.0.4
@@ -71,7 +71,7 @@ services:
       - "14540:24540/udp"      # UDP MAVSDK offboard (host standard port)
     networks:
       dexi-network:
-        ipv4_address: 172.20.0.9
+        ipv4_address: 172.20.0.11
         aliases:
           - mavlink-router
     restart: unless-stopped
@@ -86,13 +86,13 @@ services:
     build: ./mavlink2rest
     image: droneblocks/dexi-sim-mavlink2rest:latest
     command:
-      - --connect=udpout:172.20.0.9:14770
+      - --connect=udpout:172.20.0.11:14770
       - --server=0.0.0.0:8088
     ports:
       - "8088:8088"
     networks:
       dexi-network:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 172.20.0.12
         aliases:
           - mavlink2rest
     depends_on:
