@@ -18,7 +18,7 @@ services:
       - "1881:1880"  # TESTING ONLY — remove before launch
     networks:
       dexi-network:
-        ipv4_address: 172.20.0.9
+        ipv4_address: 172.20.0.11  # was .9 — collided with mavlink-router (base compose)
         aliases:
           - avr-validator
     environment:
