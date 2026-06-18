@@ -127,7 +127,8 @@ services:
     tty: true
 
   node-red:
-    image: droneblocks/dexi-node-red:latest
+    # Pinned for reproducible deploys; bump deliberately (in git) on release.
+    image: droneblocks/dexi-node-red:0.0.18
     restart: unless-stopped
     ports:
       - "1880:1880"
