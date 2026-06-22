@@ -113,7 +113,7 @@ The base image should match: `droneblocks/dexi-sim-ros2-base:humble-px4-1.16.0`
 Build a new base image with the appropriate branch:
 ```dockerfile
 # In Dockerfile.base, change this line:
-RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.15 --single-branch
+RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.17 --single-branch
 ```
 
 Then tag appropriately: `droneblocks/dexi-sim-ros2-base:humble-px4-1.15.0`
