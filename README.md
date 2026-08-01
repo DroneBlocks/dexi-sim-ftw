@@ -84,6 +84,22 @@ cd ~/dexi_ws
 ./setup.sh
 ```
 
+### Build fails: "No 'rosidl_typesupport_c' found"
+
+`/opt/ros/humble` is missing from `AMENT_PREFIX_PATH`. `find_package` uses
+`CMAKE_PREFIX_PATH` so the CMake config still resolves, but the ament index
+lookup finds no typesupports and the build stops. Usual cause is a
+non-interactive shell (`docker compose exec ros2-dev bash -c "colcon build"`
+skips `.bashrc`) or a terminal with only the workspace overlay sourced.
+
+```bash
+docker compose exec ros2-dev bash
+cd ~/dexi_ws && rm -rf build install log
+source /opt/ros/humble/setup.bash
+source /opt/px4_ws/install/setup.bash
+./setup.sh
+```
+
 ### Node-RED Permission Error? (Linux only)
 
 ```bash
@@ -106,9 +122,17 @@ If `http://localhost` doesn't load the Ground Control dashboard, another service
 
 **ROS2 Packages**: Add to `./dexi_ws/src/` and rebuild:
 ```bash
-# In VNC:
+# In VNC (http://localhost:6080), or: docker compose exec ros2-dev bash
 cd ~/dexi_ws
-colcon build
+
+# Source ROS first, or interface packages fail with "No 'rosidl_typesupport_c' found".
+source /opt/ros/humble/setup.bash
+source /opt/px4_ws/install/setup.bash
+
+# Select your package. A bare `colcon build` also builds the jazzy/rolling
+# packages pinned in dexi.repos and a source cv_bridge that conflicts with
+# the apt one, which fails on Humble. `setup.sh` has the known-good list.
+colcon build --packages-select <your_package> --symlink-install
 source install/setup.bash
 ```
 
