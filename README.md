@@ -84,6 +84,46 @@ cd ~/dexi_ws
 ./setup.sh
 ```
 
+### Build Fails with `error: option --editable not recognized`
+
+Symptom: `colcon build` fails on `dexi_led`, and everything that depends on it
+(`dexi_offboard`, `dexi_ctf`, `dexi_apriltag`, `apriltag_ros`) is reported as aborted.
+
+```
+error: option --editable not recognized
+Failed   <<< dexi_led [3.97s, exited with code 1]
+```
+
+setuptools 80 removed the `setup.py develop` command that `colcon build --symlink-install`
+uses to build every Python package. If your container has setuptools 80 or newer, every
+Python package in the workspace fails.
+
+`./setup.sh` now detects this and pins setuptools back automatically, so the fix is to
+build with it rather than calling `colcon build` directly:
+
+```bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
+```
+
+To fix it by hand instead:
+
+```bash
+docker compose exec ros2-dev pip3 install "setuptools<80"
+```
+
+Images built from this repo pin `setuptools<80`, so this only affects containers created
+from an older image. `docker compose pull` picks up the fixed one.
+
+### Harmless Warnings You Can Ignore
+
+These show up in a healthy build:
+
+- `UserWarning: Unknown distribution option: 'tests_require'` is cosmetic setuptools noise.
+- `WARNING:colcon...px4_msgs...are being used from /opt/px4_ws/install/px4_msgs` is correct.
+  `px4_msgs` is pre-built in the base image on purpose so you don't recompile it.
+
+A build is healthy when the summary line reports `0 packages failed`.
+
 ### Node-RED Permission Error? (Linux only)
 
 ```bash
@@ -104,13 +144,49 @@ If `http://localhost` doesn't load the Ground Control dashboard, another service
 
 ## Development
 
-**ROS2 Packages**: Add to `./dexi_ws/src/` and rebuild:
+### Where Things Live Inside the Container
+
+The ROS2 workspace is at **`/home/ubuntu/dexi_ws`**. That is the container side of the
+`./dexi_ws` bind mount in `docker-compose.yml`, so edits on your host show up instantly
+inside the container and vice versa.
+
+`docker compose exec ros2-dev bash` logs you in as **root**, not `ubuntu`. The VNC
+desktop entrypoint needs root to start. The VNC session at http://localhost:6080 runs as
+the `ubuntu` user. Both users now see the workspace at `~/dexi_ws`, because root's home
+carries symlinks to the real paths:
+
+| Inside the container | Real path | Host path |
+|---|---|---|
+| `~/dexi_ws` | `/home/ubuntu/dexi_ws` | `./dexi_ws` |
+| `~/scripts` | `/home/ubuntu/scripts` | `./scripts` |
+| `~/dexi-mavsdk` | `/home/ubuntu/dexi-mavsdk` | `./dexi-mavsdk` |
+
+There is no `dexi` user and no `/root/dexi_ws` directory. If you see that path referenced
+anywhere, it's the Raspberry Pi setup (`docker-compose.pi.yml`), which is a different image.
+
+### Rebuilding the Workspace
+
+**ROS2 Packages**: Add to `./dexi_ws/src/` and rebuild with `setup.sh`:
 ```bash
-# In VNC:
-cd ~/dexi_ws
-colcon build
-source install/setup.bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
 ```
+
+Use `setup.sh` rather than a bare `colcon build`. It pulls the external dependencies
+listed in `dexi.repos`, builds the same package list CI builds, and skips the packages
+that only compile on real drone hardware. A bare `colcon build` tries to build everything
+in `src/`, including hardware-only packages like `dexi_cpp` and `dexi_camera`, and fails.
+
+To rebuild a single package you're actively editing:
+```bash
+docker compose exec ros2-dev bash -c \
+  "source /opt/ros/humble/setup.bash && cd /home/ubuntu/dexi_ws && \
+   colcon build --packages-select dexi_led --symlink-install && \
+   source install/setup.bash"
+```
+
+`--symlink-install` means edits to Python files take effect on node restart with no
+rebuild. You only need to rebuild after changing `setup.py`, adding a new node, or
+touching anything C++.
 
 **View Logs**:
 ```bash
