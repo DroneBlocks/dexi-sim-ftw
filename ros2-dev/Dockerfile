@@ -12,6 +12,15 @@ RUN chmod +x /usr/local/bin/start-rosbridge.sh && \
 # Auto-source dexi_ws if it exists (volume-mounted at runtime)
 RUN echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
 
+# See Dockerfile.sim for the rationale: `docker compose exec` logs you in as
+# root with HOME=/root, but the workspace bind mount is at /home/ubuntu/dexi_ws.
+RUN ln -sfn /home/ubuntu/dexi_ws /root/dexi_ws && \
+    ln -sfn /home/ubuntu/scripts /root/scripts && \
+    ln -sfn /home/ubuntu/dexi-mavsdk /root/dexi-mavsdk && \
+    echo 'source /opt/ros/humble/setup.bash' >> /root/.bashrc && \
+    echo '[ -f /opt/px4_ws/install/setup.bash ] && source /opt/px4_ws/install/setup.bash' >> /root/.bashrc && \
+    echo '[ -f /home/ubuntu/dexi_ws/install/setup.bash ] && source /home/ubuntu/dexi_ws/install/setup.bash' >> /root/.bashrc
+
 # Strip browsers from the VNC desktop. See Dockerfile.sim for the production
 # equivalent and rationale (tiryoh ships Firefox via /opt tarball, not apt).
 RUN sudo bash -c 'set -e; \

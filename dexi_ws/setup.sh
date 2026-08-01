@@ -8,11 +8,37 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 # Import dependencies from dexi.repos
+#
+# `vcs import` only clones repos that are missing, and `--force` does not update
+# existing ones either, so a workspace populated once stays pinned to whatever it
+# first received no matter how many times this runs. That silently held
+# dexi_apriltag on a pre-Jazzy cv_bridge include for months. `vcs pull` is the
+# only thing that refreshes checkouts that are already there. It is non-fatal
+# because a package with local commits should not stop the build.
 if [ -f "src/dexi_bringup/dexi.repos" ]; then
     echo "Importing dependencies from dexi.repos..."
     vcs import src < src/dexi_bringup/dexi.repos
+    echo "Refreshing already-imported dependencies..."
+    vcs pull src || echo "  (some repos could not be updated, continuing)"
 else
     echo "Warning: dexi.repos not found at src/dexi_bringup/dexi.repos"
+fi
+
+# setuptools 80 dropped `setup.py develop`, which --symlink-install needs below.
+# The images pin setuptools<80, but repair older images and stray upgrades here.
+SETUPTOOLS_MAJOR=$(python3 -c 'import setuptools; print(setuptools.__version__.split(".")[0])' 2>/dev/null || echo 0)
+case "$SETUPTOOLS_MAJOR" in
+    ''|*[!0-9]*) SETUPTOOLS_MAJOR=0 ;;
+esac
+if [ "$SETUPTOOLS_MAJOR" -ge 80 ]; then
+    echo "setuptools $SETUPTOOLS_MAJOR.x dropped 'setup.py develop', which colcon --symlink-install needs."
+    echo "Pinning setuptools below 80 before building..."
+    if [ "$(id -u)" -eq 0 ]; then
+        pip3 install --quiet "setuptools<80"
+    else
+        pip3 install --quiet --user "setuptools<80"
+    fi
+    echo "setuptools is now $(python3 -c 'import setuptools; print(setuptools.__version__)')"
 fi
 
 # Source ROS2 and pre-built px4_msgs from base image
@@ -22,13 +48,25 @@ if [ -f "/opt/px4_ws/install/setup.bash" ]; then
     echo "Using pre-built px4_msgs from base image"
 fi
 
+# A workspace built before cv_bridge joined the list leaves a CMake cache in
+# build/dexi_apriltag that keeps failing on the missing cv_bridge.hpp even after
+# cv_bridge is built. Drop those artifacts so CMake reconfigures against it.
+if [ ! -d "install/cv_bridge" ] && [ -d "build/dexi_apriltag" ]; then
+    echo "Clearing stale dexi_apriltag artifacts (workspace predates the cv_bridge fix)..."
+    rm -rf build/dexi_apriltag install/dexi_apriltag
+fi
+
 # Build only DEXI packages and required dependencies (px4_msgs is pre-built in base image)
-echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, dexi_ctf, apriltag packages..."
+# Keep this list in sync with ros2-dev/Dockerfile.sim, which is what CI builds.
+# cv_bridge must be built, not ignored: dexi_apriltag needs cv_bridge.hpp, which
+# the apt ros-humble-cv-bridge package does not ship.
+echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, dexi_ctf, apriltag packages, cv_bridge..."
 colcon build --packages-select dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
     apriltag apriltag_msgs apriltag_ros dexi_apriltag \
+    cv_bridge dexi_llm dexi_color_detection \
   --packages-ignore dexi_cpp dexi_camera dexi_yolo camera_ros \
     compressed_depth_image_transport compressed_image_transport \
-    theora_image_transport zstd_image_transport image_transport_plugins cv_bridge \
+    theora_image_transport zstd_image_transport image_transport_plugins \
   --symlink-install
 
 # Source the workspace

@@ -84,6 +84,23 @@ cd ~/dexi_ws
 ./setup.sh
 ```
 
+### Build Fails with `error: option --editable not recognized`
+
+setuptools 80 and newer dropped the command `colcon build --symlink-install` needs, so
+every Python package fails. Rebuild with `setup.sh`, which pins it back for you:
+
+```bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
+```
+
+Or fix it directly: `docker compose exec ros2-dev pip3 install "setuptools<80"`.
+
+### Warnings You Can Ignore
+
+`Unknown distribution option: 'tests_require'` and the `px4_msgs are being used from
+/opt/px4_ws/install` warning are both normal. The build is fine when the summary line
+says `0 packages failed`.
+
 ### Node-RED Permission Error? (Linux only)
 
 ```bash
@@ -104,13 +121,35 @@ If `http://localhost` doesn't load the Ground Control dashboard, another service
 
 ## Development
 
-**ROS2 Packages**: Add to `./dexi_ws/src/` and rebuild:
+### Where Things Live
+
+The workspace is at **`/home/ubuntu/dexi_ws`**, the container side of the `./dexi_ws`
+bind mount, so edits on your host apply inside the container immediately.
+
+`docker compose exec ros2-dev bash` logs you in as `root`; the VNC desktop runs as
+`ubuntu`. Both reach the workspace at `~/dexi_ws`. There is no `dexi` user.
+
+### Rebuilding the Workspace
+
+**ROS2 Packages**: Add to `./dexi_ws/src/`, then:
 ```bash
-# In VNC:
-cd ~/dexi_ws
-colcon build
-source install/setup.bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
 ```
+
+Use `setup.sh`, not a bare `colcon build`. It imports the `dexi.repos` dependencies and
+skips the packages that only build on real drone hardware, which a bare `colcon build`
+would try to compile and fail on.
+
+To rebuild just the package you're editing:
+```bash
+docker compose exec ros2-dev bash -c \
+  "source /opt/ros/humble/setup.bash && cd /home/ubuntu/dexi_ws && \
+   colcon build --packages-select dexi_led --symlink-install && \
+   source install/setup.bash"
+```
+
+Thanks to `--symlink-install`, Python edits take effect on node restart with no rebuild.
+Only `setup.py` changes, new nodes, and C++ need a rebuild.
 
 **View Logs**:
 ```bash
