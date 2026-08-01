@@ -39,6 +39,14 @@ if [ -f "/opt/px4_ws/install/setup.bash" ]; then
     echo "Using pre-built px4_msgs from base image"
 fi
 
+# A workspace built before cv_bridge joined the list leaves a CMake cache in
+# build/dexi_apriltag that keeps failing on the missing cv_bridge.hpp even after
+# cv_bridge is built. Drop those artifacts so CMake reconfigures against it.
+if [ ! -d "install/cv_bridge" ] && [ -d "build/dexi_apriltag" ]; then
+    echo "Clearing stale dexi_apriltag artifacts (workspace predates the cv_bridge fix)..."
+    rm -rf build/dexi_apriltag install/dexi_apriltag
+fi
+
 # Build only DEXI packages and required dependencies (px4_msgs is pre-built in base image)
 # Keep this list in sync with ros2-dev/Dockerfile.sim, which is what CI builds.
 # cv_bridge must be built, not ignored: dexi_apriltag needs cv_bridge.hpp, which
