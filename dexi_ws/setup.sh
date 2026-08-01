@@ -8,9 +8,18 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 # Import dependencies from dexi.repos
+#
+# `vcs import` only clones repos that are missing, and `--force` does not update
+# existing ones either, so a workspace populated once stays pinned to whatever it
+# first received no matter how many times this runs. That silently held
+# dexi_apriltag on a pre-Jazzy cv_bridge include for months. `vcs pull` is the
+# only thing that refreshes checkouts that are already there. It is non-fatal
+# because a package with local commits should not stop the build.
 if [ -f "src/dexi_bringup/dexi.repos" ]; then
     echo "Importing dependencies from dexi.repos..."
     vcs import src < src/dexi_bringup/dexi.repos
+    echo "Refreshing already-imported dependencies..."
+    vcs pull src || echo "  (some repos could not be updated, continuing)"
 else
     echo "Warning: dexi.repos not found at src/dexi_bringup/dexi.repos"
 fi
