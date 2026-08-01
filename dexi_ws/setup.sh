@@ -15,12 +15,8 @@ else
     echo "Warning: dexi.repos not found at src/dexi_bringup/dexi.repos"
 fi
 
-# colcon's --symlink-install below builds every ament_python package by running
-# `setup.py develop --editable`, a command setuptools removed in 80.0. On a
-# container carrying setuptools 80+ the build dies on dexi_led with
-# "error: option --editable not recognized" and aborts everything downstream.
-# The images pin setuptools<80, but an already-pulled image (or a stray
-# `pip install --upgrade setuptools`) can still be too new, so repair it here.
+# setuptools 80 dropped `setup.py develop`, which --symlink-install needs below.
+# The images pin setuptools<80, but repair older images and stray upgrades here.
 SETUPTOOLS_MAJOR=$(python3 -c 'import setuptools; print(setuptools.__version__.split(".")[0])' 2>/dev/null || echo 0)
 case "$SETUPTOOLS_MAJOR" in
     ''|*[!0-9]*) SETUPTOOLS_MAJOR=0 ;;
@@ -44,12 +40,9 @@ if [ -f "/opt/px4_ws/install/setup.bash" ]; then
 fi
 
 # Build only DEXI packages and required dependencies (px4_msgs is pre-built in base image)
-#
-# Keep this list in sync with the colcon invocation in ros2-dev/Dockerfile.sim,
-# which is the list CI proves builds. cv_bridge in particular must be BUILT, not
-# ignored: dexi_apriltag includes <cv_bridge/cv_bridge.hpp>, which the apt
-# ros-humble-cv-bridge package does not ship, so ignoring it fails dexi_apriltag
-# and aborts dexi_offboard behind it.
+# Keep this list in sync with ros2-dev/Dockerfile.sim, which is what CI builds.
+# cv_bridge must be built, not ignored: dexi_apriltag needs cv_bridge.hpp, which
+# the apt ros-humble-cv-bridge package does not ship.
 echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, dexi_ctf, apriltag packages, cv_bridge..."
 colcon build --packages-select dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
     apriltag apriltag_msgs apriltag_ros dexi_apriltag \

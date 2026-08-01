@@ -50,13 +50,9 @@ RUN bash -c "source /opt/ros/humble/setup.bash && \
 
 # Install llama-cpp-python for local LLM inference (after colcon to avoid QEMU memory pressure)
 #
-# setuptools stays below 80 on purpose. colcon's --symlink-install builds every
-# ament_python package by shelling out to `setup.py develop --editable`, and
-# setuptools removed the develop command in 80.0. Ship an image carrying 80+ and
-# the first `colcon build --symlink-install` anyone runs inside the container
-# dies with "error: option --editable not recognized" on dexi_led, which then
-# aborts every package downstream of it. The pin is re-applied after the
-# llama-cpp-python install in case a transitive dependency pulls a newer one.
+# setuptools stays below 80: it dropped `setup.py develop`, which colcon's
+# --symlink-install needs to build ament_python packages. Pinned last so a
+# transitive dependency can't leave a newer one behind.
 RUN pip3 install --upgrade pip packaging && \
     pip3 install "numpy<2" llama-cpp-python==0.2.90 && \
     pip3 install "setuptools<80" && \
@@ -70,12 +66,9 @@ RUN echo 'source /opt/ros/humble/setup.bash' >> /home/ubuntu/.bashrc && \
     echo '[ -f /opt/px4_ws/install/setup.bash ] && source /opt/px4_ws/install/setup.bash' >> /home/ubuntu/.bashrc && \
     echo '[ -f ~/dexi_ws/install/setup.bash ] && source ~/dexi_ws/install/setup.bash' >> /home/ubuntu/.bashrc
 
-# The VNC entrypoint needs root, so `docker compose exec ros2-dev bash` drops you
-# in as root with HOME=/root while the workspace bind mount lands at
-# /home/ubuntu/dexi_ws. Without these, every `~/dexi_ws` in the docs resolves to
-# a directory that does not exist and the command fails with no useful message.
-# The symlink targets are bind mounts that only exist at runtime, so they are
-# dangling in the image by design.
+# `docker compose exec` logs you in as root (HOME=/root), but the workspace bind
+# mount is at /home/ubuntu/dexi_ws. Make `~/dexi_ws` work for both users.
+# Targets are runtime bind mounts, so these dangle in the image by design.
 RUN ln -sfn /home/ubuntu/dexi_ws /root/dexi_ws && \
     ln -sfn /home/ubuntu/scripts /root/scripts && \
     ln -sfn /home/ubuntu/dexi-mavsdk /root/dexi-mavsdk && \
