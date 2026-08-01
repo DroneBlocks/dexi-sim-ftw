@@ -95,6 +95,22 @@ docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
 
 Or fix it directly: `docker compose exec ros2-dev pip3 install "setuptools<80"`.
 
+### Build Fails with `No 'rosidl_typesupport_c' found`
+
+`/opt/ros/humble` is missing from `AMENT_PREFIX_PATH`. `find_package` uses
+`CMAKE_PREFIX_PATH` so the CMake config still resolves, but the ament index
+lookup finds no typesupports and the build stops. Usual cause is a
+non-interactive shell (`docker compose exec ros2-dev bash -c "colcon build"`
+skips `.bashrc`) or a terminal with only the workspace overlay sourced.
+
+```bash
+docker compose exec ros2-dev bash
+cd ~/dexi_ws && rm -rf build install log
+source /opt/ros/humble/setup.bash
+source /opt/px4_ws/install/setup.bash
+./setup.sh
+```
+
 ### Warnings You Can Ignore
 
 `Unknown distribution option: 'tests_require'` and the `px4_msgs are being used from
@@ -143,10 +159,16 @@ would try to compile and fail on.
 To rebuild just the package you're editing:
 ```bash
 docker compose exec ros2-dev bash -c \
-  "source /opt/ros/humble/setup.bash && cd /home/ubuntu/dexi_ws && \
+  "source /opt/ros/humble/setup.bash && \
+   source /opt/px4_ws/install/setup.bash && \
+   cd /home/ubuntu/dexi_ws && \
    colcon build --packages-select dexi_led --symlink-install && \
    source install/setup.bash"
 ```
+
+Source both setup files first. `docker compose exec ... bash -c` is a non-interactive
+shell, so it skips `.bashrc`, and without them interface packages fail with
+`No 'rosidl_typesupport_c' found`.
 
 Thanks to `--symlink-install`, Python edits take effect on node restart with no rebuild.
 Only `setup.py` changes, new nodes, and C++ need a rebuild.
