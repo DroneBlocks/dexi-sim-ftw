@@ -84,7 +84,18 @@ cd ~/dexi_ws
 ./setup.sh
 ```
 
-### Build fails: "No 'rosidl_typesupport_c' found"
+### Build Fails with `error: option --editable not recognized`
+
+setuptools 80 and newer dropped the command `colcon build --symlink-install` needs, so
+every Python package fails. Rebuild with `setup.sh`, which pins it back for you:
+
+```bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
+```
+
+Or fix it directly: `docker compose exec ros2-dev pip3 install "setuptools<80"`.
+
+### Build Fails with `No 'rosidl_typesupport_c' found`
 
 `/opt/ros/humble` is missing from `AMENT_PREFIX_PATH`. `find_package` uses
 `CMAKE_PREFIX_PATH` so the CMake config still resolves, but the ament index
@@ -99,6 +110,12 @@ source /opt/ros/humble/setup.bash
 source /opt/px4_ws/install/setup.bash
 ./setup.sh
 ```
+
+### Warnings You Can Ignore
+
+`Unknown distribution option: 'tests_require'` and the `px4_msgs are being used from
+/opt/px4_ws/install` warning are both normal. The build is fine when the summary line
+says `0 packages failed`.
 
 ### Node-RED Permission Error? (Linux only)
 
@@ -120,21 +137,41 @@ If `http://localhost` doesn't load the Ground Control dashboard, another service
 
 ## Development
 
-**ROS2 Packages**: Add to `./dexi_ws/src/` and rebuild:
+### Where Things Live
+
+The workspace is at **`/home/ubuntu/dexi_ws`**, the container side of the `./dexi_ws`
+bind mount, so edits on your host apply inside the container immediately.
+
+`docker compose exec ros2-dev bash` logs you in as `root`; the VNC desktop runs as
+`ubuntu`. Both reach the workspace at `~/dexi_ws`. There is no `dexi` user.
+
+### Rebuilding the Workspace
+
+**ROS2 Packages**: Add to `./dexi_ws/src/`, then:
 ```bash
-# In VNC (http://localhost:6080), or: docker compose exec ros2-dev bash
-cd ~/dexi_ws
-
-# Source ROS first, or interface packages fail with "No 'rosidl_typesupport_c' found".
-source /opt/ros/humble/setup.bash
-source /opt/px4_ws/install/setup.bash
-
-# Select your package. A bare `colcon build` also builds the jazzy/rolling
-# packages pinned in dexi.repos and a source cv_bridge that conflicts with
-# the apt one, which fails on Humble. `setup.sh` has the known-good list.
-colcon build --packages-select <your_package> --symlink-install
-source install/setup.bash
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
 ```
+
+Use `setup.sh`, not a bare `colcon build`. It imports the `dexi.repos` dependencies and
+skips the packages that only build on real drone hardware, which a bare `colcon build`
+would try to compile and fail on.
+
+To rebuild just the package you're editing:
+```bash
+docker compose exec ros2-dev bash -c \
+  "source /opt/ros/humble/setup.bash && \
+   source /opt/px4_ws/install/setup.bash && \
+   cd /home/ubuntu/dexi_ws && \
+   colcon build --packages-select dexi_led --symlink-install && \
+   source install/setup.bash"
+```
+
+Source both setup files first. `docker compose exec ... bash -c` is a non-interactive
+shell, so it skips `.bashrc`, and without them interface packages fail with
+`No 'rosidl_typesupport_c' found`.
+
+Thanks to `--symlink-install`, Python edits take effect on node restart with no rebuild.
+Only `setup.py` changes, new nodes, and C++ need a rebuild.
 
 **View Logs**:
 ```bash
