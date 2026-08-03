@@ -30,7 +30,7 @@ RUN sudo apt-get -o Acquire::Check-Valid-Until=false \
 
 # Create workspace and clone px4_msgs
 WORKDIR /opt/px4_ws/src
-RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.16 --single-branch
+RUN git clone https://github.com/PX4/px4_msgs.git --branch release/1.17 --single-branch
 
 # Build px4_msgs
 WORKDIR /opt/px4_ws

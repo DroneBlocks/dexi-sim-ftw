@@ -7,7 +7,7 @@ echo "=== ROS2 Workspace Setup (Jazzy) ==="
 if [ ! -d "src/px4_msgs" ]; then
     echo "Cloning px4_msgs..."
     cd src
-    git clone https://github.com/PX4/px4_msgs.git -b release/1.16
+    git clone https://github.com/PX4/px4_msgs.git -b release/1.17
     cd ..
 else
     echo "px4_msgs already cloned"
