@@ -1,4 +1,4 @@
-FROM codercom/code-server:latest
+FROM coder/code-server:4.108.2
 
 # Install Python and pip
 RUN sudo apt-get update && \
