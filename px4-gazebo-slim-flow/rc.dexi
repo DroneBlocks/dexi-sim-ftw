@@ -1,0 +1,16 @@
+# Dexi indoor-flight EKF parameter overrides for iris_opt_flow SITL.
+# Mirrors the custom PX4 params we run on the real drone (see CLAUDE.md).
+#
+# The 1010_gazebo-classic_iris_opt_flow airframe already sets:
+#   EKF2_GPS_CTRL=0, EKF2_OF_CTRL=1, LPE_FUSION=242, LPE_FAKE_ORIGIN=1
+# But it leaves EKF2_HGT_REF=0 (baro). We override to match prod: range as
+# primary height source, lower flow-quality threshold, arm without GPS.
+param set EKF2_HGT_REF 2
+param set EKF2_RNG_CTRL 2
+param set EKF2_OF_QMIN 50
+param set SYS_HAS_GPS 0
+param set COM_ARM_WO_GPS 1
+# Sim-only: the SITL build has no battery monitor, so the power-supply
+# preflight check always fails. Prod hardware uses the real PMB so we only
+# ever need this bypass under Gazebo.
+param set CBRK_SUPPLY_CHK 894281
