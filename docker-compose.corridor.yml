@@ -32,3 +32,20 @@ services:
 
   web-dashboard:
     image: droneblocks/dexi-droneblocks:apriltag-proto
+
+  # Dashboard-driven sim reset: POST /reset teleports the Gazebo model back to
+  # tag 0 and PX4's estimator follows in ~12 s. No Docker access needed by anyone.
+  sim-control:
+    build: ./sim-control
+    image: droneblocks/dexi-sim-control:dev
+    environment:
+      - GAZEBO_MASTER_URI=http://px4-sitl:11345
+    ports:
+      - "8090:8090"
+    networks:
+      dexi-network:
+        aliases:
+          - sim-control
+    depends_on:
+      - px4-sitl
+    restart: unless-stopped
