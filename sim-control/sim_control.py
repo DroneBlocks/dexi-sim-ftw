@@ -6,11 +6,12 @@ simulation without anyone touching Docker.
     POST /reset?n=0&e=3.0  -> at a NED position in meters
     GET  /health
 
-Runs next to px4-sitl with GAZEBO_MASTER_URI pointing at it. Refuses while armed:
-PX4 is asked over MAVLink? No: it checks the Gazebo model's height instead, which
-is ground level only when landed. Keep it simple; a teleport in flight is a crash.
+Runs next to px4-sitl with GAZEBO_MASTER_URI pointing at it. It refuses when the
+model is off the ground; callers (the court page, the dashboard) also refuse while
+PX4 is armed. A teleport under a flying estimator is a crash.
 """
 import json
+import math
 import os
 import subprocess
 import time
@@ -18,20 +19,29 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
 MODEL = os.environ.get('SIM_MODEL', 'iris')
-YAW = float(os.environ.get('SIM_SPAWN_YAW', '1.5708'))   # east, as PX4 SITL spawns
 
 
 def gz(*args):
     return subprocess.run(['gz', 'model', '-m', MODEL, *args], capture_output=True, text=True, timeout=15)
 
 
-def model_height():
+def model_pose():
+    """(height, yaw) of the model from `gz model -i`, or (None, None) if Gazebo is unreachable."""
     out = gz('-i').stdout
-    # "pose { position { x: .. y: .. z: .. } ..." -> z of the first position block
     try:
-        return float(out.split('position {', 1)[1].split('z:', 1)[1].split()[0])
+        pos = out.split('position {', 1)[1]
+        z = float(pos.split('z:', 1)[1].split()[0])
     except (IndexError, ValueError):
-        return None
+        return None, None
+    yaw = 0.0
+    if 'orientation {' in out:
+        try:
+            o = out.split('orientation {', 1)[1].split('}', 1)[0]
+            q = {k: float(o.split(k + ':', 1)[1].split()[0]) for k in ('x', 'y', 'z', 'w')}
+            yaw = math.atan2(2 * (q['w'] * q['z'] + q['x'] * q['y']), 1 - 2 * (q['y'] ** 2 + q['z'] ** 2))
+        except (IndexError, ValueError, KeyError):
+            pass
+    return z, yaw
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -49,7 +59,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if urlparse(self.path).path == '/health':
-            return self._send(200, {'ok': True, 'model': MODEL, 'height': model_height()})
+            h, yaw = model_pose()
+            return self._send(200, {'ok': True, 'model': MODEL, 'height': h, 'yaw': yaw})
         self._send(404, {'error': 'use POST /reset'})
 
     def do_POST(self):
@@ -59,13 +70,14 @@ class Handler(BaseHTTPRequestHandler):
         q = parse_qs(url.query)
         north = float(q.get('n', ['0'])[0])
         east = float(q.get('e', ['0'])[0])
-        h = model_height()
+        h, yaw = model_pose()
         if h is None:
             return self._send(503, {'error': 'Gazebo not reachable'})
-        if h > 0.4:
-            return self._send(409, {'error': f'aircraft is airborne ({h:.2f} m); land first'})
-        # Gazebo is ENU (x east, y north); PX4 reports NED.
-        r = gz('-x', str(east), '-y', str(north), '-z', '0.12', '-R', '0', '-P', '0', '-Y', str(YAW))
+        if h > 0.2:
+            return self._send(409, {'error': f'aircraft is airborne ({h:.2f} m); land and disarm first'})
+        # Gazebo is ENU (x east, y north); PX4 reports NED. Keep the model's yaw: a yaw jump
+        # under a running estimator reads as a magnetometer fault and PX4 refuses to arm.
+        r = gz('-x', str(east), '-y', str(north), '-z', '0.12', '-R', '0', '-P', '0', '-Y', str(yaw))
         if r.returncode != 0:
             return self._send(500, {'error': r.stderr.strip()[:200]})
         self._send(200, {'ok': True, 'north': north, 'east': east, 'note': 'estimator settles in about 12 s'})

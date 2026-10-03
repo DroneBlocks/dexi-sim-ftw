@@ -14,8 +14,10 @@ px4() { docker exec "$PX4" sh -c "export PATH=/opt/px4/bin:\$PATH; cd /opt/px4/r
 if px4 "px4-commander status" 2>/dev/null | grep -q "Armed"; then
   echo "aircraft is armed; land and disarm first" >&2; exit 1
 fi
-# Gazebo is ENU: x east, y north. PX4 reports NED.
-px4 "gz model -m iris -x $EAST -y $NORTH -z 0.12 -R 0 -P 0 -Y 1.5708"
+# Gazebo is ENU: x east, y north; Gazebo yaw 0 faces east, which is how the iris
+# spawns (PX4 heading 90). Never change the yaw here: a yaw jump under a running
+# estimator reads as a compass fault and the next flight is 90 degrees off.
+px4 "gz model -m iris -x $EAST -y $NORTH -z 0.12 -R 0 -P 0 -Y 0"
 printf "moved; waiting for the estimator "
 for _ in $(seq 1 25); do
   sleep 1; printf "."
