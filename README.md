@@ -184,6 +184,42 @@ docker compose logs -f ros2-dev     # Specific service
 docker compose exec ros2-dev bash
 ```
 
+## AprilTag navigation sim (corridor and the AVR 2026 court)
+
+`docker-compose.corridor.yml` adds a three.js court served by nginx
+(`corridor-sim`, from a checkout of `droneblocks-web-sim` next to this repo)
+and the GCS built with the AprilTag navigation blocks. The page follows PX4
+SITL over rosbridge, renders a tag corridor or the AVR 2026 court from its
+glTF, and publishes the downward camera on `/cam0/image_raw/compressed`, so the
+stock `apriltag_node`, `tag_nav` and the offboard manager run unchanged.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
+    up -d px4-sitl micro-dds-agent ros2-dev corridor-sim web-dashboard
+# court:  http://localhost:8000/viewer-corridor.html?autoconnect=1&scene=avr2026
+# GCS:    http://localhost/droneblocks     Node-RED: http://localhost:1880/ui
+```
+
+A browser tab only publishes frames while it is in the foreground. For
+unattended runs (tests, a classroom box), keep one headless page open instead:
+`node dev-cam-publisher.mjs avr2026` in the web-sim checkout.
+
+`docker-compose.drone.yml` points the same GCS at a real aircraft
+(`DEXI_HOST=<ip> ... up -d web-dashboard`); PX4, the detector and the manager
+then run on the aircraft.
+
+### PX4 on SIH instead of Gazebo (experiment, not ready)
+
+`docker-compose.sih.yml` runs the same PX4 binary on its built-in SIH
+simulator with no gzserver and no X server, which is the cheap option for a
+cloud box: 11% of a core for PX4 against about 19% for PX4 plus Gazebo. It
+boots, arms and flies, but out of the box PX4's own Hold mode wanders about a
+meter against SIH's ground truth and the EKF height sits 0.3 to 1 m off, so
+tag centering diverges. Switching the height reference to GPS did not change
+the horizontal wander. The remaining work is on the PX4 side (SIH sensor
+noise and the position controller gains for `sihsim_quadx`), so the Gazebo
+stack stays the default.
+
 ## Multi-Architecture Support
 
 All Docker images support both **amd64** (Intel/AMD) and **arm64** (Apple Silicon, Raspberry Pi):

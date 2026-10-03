@@ -1,0 +1,14 @@
+# PX4 on its built-in SIH simulator instead of Gazebo: same image, same
+# airframe family, no gzserver and no X server. For classroom cloud boxes the
+# physics is the only thing Gazebo was providing (empty world, camera from the
+# three.js court), and SIH does that for a fraction of the CPU.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
+#                  -f docker-compose.sih.yml up -d
+services:
+  px4-sitl:
+    entrypoint: ["/opt/px4/entrypoint-sih.sh"]
+    volumes:
+      - ./dexi-mavsdk:/root/dexi-mavsdk
+      # SIH_ENTRYPOINT lets this override be used from a project rooted elsewhere.
+      - ${SIH_ENTRYPOINT:-./px4-gazebo-slim/entrypoint-sih.sh}:/opt/px4/entrypoint-sih.sh:ro

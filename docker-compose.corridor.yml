@@ -1,0 +1,34 @@
+# AprilTag corridor prototype overlay.
+#
+# Adds two things to the base stack:
+#   corridor-sim   nginx serving droneblocks-web-sim, whose viewer-corridor.html
+#                  renders a tag corridor in three.js, follows PX4 SITL over
+#                  rosbridge, and publishes the belly camera on /cam0 exactly
+#                  as the Unity sim does, so the stock apriltag_node runs unchanged.
+#   web-dashboard  the GCS built from the feat/apriltag-nav-blocks branch, which
+#                  has the AprilTag navigation blocks (wait for tag, center on
+#                  tag, fly until tag, fly at speed for time, land on tag).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
+#       up -d px4-sitl micro-dds-agent ros2-dev corridor-sim web-dashboard
+#
+#   sim:  http://localhost:8000/viewer-corridor.html?autoconnect=1   (&scene=avr2026 for the real court)
+#   GCS:  http://localhost/droneblocks   menu → AprilTag Corridor Sim or AVR 2026 Field Sim, Demos → AprilTag Corridor
+#
+# The sim page must stay in a foreground window: browsers throttle animation
+# frames in background tabs, which stops the camera stream.
+services:
+  corridor-sim:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ${WEB_SIM_DIR:-../droneblocks-web-sim}:/usr/share/nginx/html:ro
+    networks:
+      dexi-network:
+        aliases:
+          - corridor-sim
+    restart: unless-stopped
+
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:apriltag-proto
