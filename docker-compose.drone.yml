@@ -1,0 +1,14 @@
+# Point the GCS at a real DEXI instead of the SITL stack.
+#
+#   DEXI_HOST=192.168.68.61 docker compose -f docker-compose.yml -f docker-compose.drone.yml up -d web-dashboard
+#   GCS: http://localhost/droneblocks   (drone view, live camera in the right pane)
+#
+# Only the dashboard runs; PX4, the detector and the offboard manager are on the
+# aircraft. NUXT_PUBLIC_ROSBRIDGE_URL overrides the browser's default of
+# ws://<page host>:9090, which would otherwise be the SITL on this machine.
+services:
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:apriltag-proto
+    environment:
+      - NUXT_PUBLIC_ROSBRIDGE_URL=ws://${DEXI_HOST:-192.168.68.61}:9090
+    depends_on: []

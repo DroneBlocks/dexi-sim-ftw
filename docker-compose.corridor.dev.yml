@@ -1,0 +1,8 @@
+# Serve the environments from a droneblocks-web-sim checkout instead of the image,
+# for editing the viewer:
+#   WEB_SIM_DIR=../droneblocks-web-sim docker compose -f docker-compose.yml \
+#       -f docker-compose.corridor.dev.yml up -d sim-env
+services:
+  sim-env:
+    volumes:
+      - ${WEB_SIM_DIR:-../droneblocks-web-sim}:/usr/share/nginx/html:ro
