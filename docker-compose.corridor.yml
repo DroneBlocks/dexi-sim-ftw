@@ -20,13 +20,11 @@
 services:
   corridor-sim:
     # The environments image: the court viewer, its scenes, tags and environments.json
-    # (droneblocks-web-sim, Dockerfile.sim-env). Set WEB_SIM_DIR to serve a checkout
-    # instead while editing the viewer.
+    # (droneblocks-web-sim, Dockerfile.sim-env). While editing the viewer, add
+    # docker-compose.corridor.dev.yml to serve a checkout instead.
     image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.1.0}
     ports:
       - "8000:80"
-    volumes:
-      - ${WEB_SIM_DIR:-/dev/null}:/usr/share/nginx/html/.dev-mount:ro
     networks:
       dexi-network:
         aliases:
