@@ -32,14 +32,13 @@ docker compose up -d
 | **Unity City** | http://localhost:1337 | 3D drone simulation |
 | **Ground Control** | http://localhost | Web-based GCS |
 | **Node-RED** | http://localhost:1880 | Visual programming |
-| **Code Server** | https://localhost:9999 | Browser-based VS Code (password: `droneblocks`) |
-| **VNC Desktop** | http://localhost:6080 | ROS2 development environment |
+| **Code Server** | http://localhost:9999 | VS Code in the browser, opens `dexi_ws` with native ROS 2 (password: `droneblocks`) |
 
 ## What's Running
 
 - **PX4 SITL** - Drone flight controller simulator
 - **Unity City** - 3D environment visualization
-- **ROS2 Humble** - Robot middleware with PX4 topics
+- **ROS 2 Jazzy** - the DEXI workspace, same distro as the aircraft, headless
 - **Rosbridge** - WebSocket bridge for web apps (ws://localhost:9090)
 - **Node-RED** - Flow-based drone programming
 - **Web GCS** - Browser-based ground control station
@@ -63,7 +62,7 @@ You should see PX4 topics streaming data.
 Unity Sim (1337) ─┐
 Web GCS (80) ─────┼──> Rosbridge (9090) ──> ROS2 ──> PX4 SITL
 Node-RED (1880) ──┘                         Topics    Simulator
-Code Server (9999)
+Code Server (9999, inside ros2-dev)
 ```
 
 ## Troubleshooting
@@ -79,9 +78,7 @@ You should see: `Rosbridge WebSocket server started on port 9090`
 
 If the workspace wasn't populated (e.g., you built the image locally instead of pulling), you can build it manually:
 ```bash
-# In VNC (http://localhost:6080):
-cd ~/dexi_ws
-./setup.sh
+docker compose exec ros2-dev bash -c "cd /home/ubuntu/dexi_ws && ./setup.sh"
 ```
 
 ### Build Fails with `error: option --editable not recognized`
@@ -97,7 +94,7 @@ Or fix it directly: `docker compose exec ros2-dev pip3 install "setuptools<80"`.
 
 ### Build Fails with `No 'rosidl_typesupport_c' found`
 
-`/opt/ros/humble` is missing from `AMENT_PREFIX_PATH`. `find_package` uses
+`/opt/ros/jazzy` is missing from `AMENT_PREFIX_PATH`. `find_package` uses
 `CMAKE_PREFIX_PATH` so the CMake config still resolves, but the ament index
 lookup finds no typesupports and the build stops. Usual cause is a
 non-interactive shell (`docker compose exec ros2-dev bash -c "colcon build"`
@@ -106,8 +103,7 @@ skips `.bashrc`) or a terminal with only the workspace overlay sourced.
 ```bash
 docker compose exec ros2-dev bash
 cd ~/dexi_ws && rm -rf build install log
-source /opt/ros/humble/setup.bash
-source /opt/px4_ws/install/setup.bash
+source /opt/ros/jazzy/setup.bash
 ./setup.sh
 ```
 
@@ -159,8 +155,7 @@ would try to compile and fail on.
 To rebuild just the package you're editing:
 ```bash
 docker compose exec ros2-dev bash -c \
-  "source /opt/ros/humble/setup.bash && \
-   source /opt/px4_ws/install/setup.bash && \
+  "source /opt/ros/jazzy/setup.bash && \
    cd /home/ubuntu/dexi_ws && \
    colcon build --packages-select dexi_led --symlink-install && \
    source install/setup.bash"
