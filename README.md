@@ -186,23 +186,28 @@ docker compose exec ros2-dev bash
 
 ## AprilTag navigation sim (corridor and the AVR 2026 court)
 
-`docker-compose.corridor.yml` adds a three.js court served by nginx
-(`corridor-sim`, from a checkout of `droneblocks-web-sim` next to this repo)
-and the GCS built with the AprilTag navigation blocks. The page follows PX4
-SITL over rosbridge, renders a tag corridor or the AVR 2026 court from its
-glTF, and publishes the downward camera on `/cam0/image_raw/compressed`, so the
-stock `apriltag_node`, `tag_nav` and the offboard manager run unchanged.
+The simulation environments are the base stack's `sim-env` service: the
+`droneblocks/dexi-sim-env` image (built from `droneblocks-web-sim`,
+`Dockerfile.sim-env`) on port 1337, where the Unity player used to be. It holds
+the three.js DEXI Lab (the default), the AVR 2026 court and the tag corridor,
+with `environments.json` describing them. The page follows PX4 SITL over
+rosbridge, publishes the downward camera on `/cam0/image_raw/compressed` as
+Unity did, and carries its own environment picker (gear drawer), so the GCS,
+a VS Code panel or a bare tab all show the environment the user last picked.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
-    up -d px4-sitl micro-dds-agent ros2-dev corridor-sim web-dashboard
-# court:  http://localhost:8000/viewer-corridor.html?autoconnect=1&scene=avr2026
-# GCS:    http://localhost/droneblocks     Node-RED: http://localhost:1880/ui
+docker compose up -d
+# environments: http://localhost:1337/viewer-corridor.html?autoconnect=1
+# GCS:          http://localhost/droneblocks     Node-RED: http://localhost:1880/ui
 ```
+
+`docker-compose.corridor.yml` only swaps in the GCS image with the AprilTag
+navigation blocks until that GCS is released.
 
 A browser tab only publishes frames while it is in the foreground. For
 unattended runs (tests, a classroom box), keep one headless page open instead:
-`node dev-cam-publisher.mjs avr2026` in the web-sim checkout.
+`node dev-cam-publisher.mjs lab` in the web-sim checkout (it uses the viewer's
+`?headless=1` camera-only mode).
 
 `docker-compose.drone.yml` points the same GCS at a real aircraft
 (`DEXI_HOST=<ip> ... up -d web-dashboard`); PX4, the detector and the manager
