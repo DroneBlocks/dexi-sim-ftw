@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.20
+    image: droneblocks/dexi-droneblocks:apriltag-proto   # preview: built on the host from dexi-droneblocks feat/apriltag-nav-blocks
     ports:
       - "80:3000"
     networks:
