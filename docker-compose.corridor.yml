@@ -19,11 +19,14 @@
 # frames in background tabs, which stops the camera stream.
 services:
   corridor-sim:
-    image: nginx:alpine
+    # The environments image: the court viewer, its scenes, tags and environments.json
+    # (droneblocks-web-sim, Dockerfile.sim-env). Set WEB_SIM_DIR to serve a checkout
+    # instead while editing the viewer.
+    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.1.0}
     ports:
       - "8000:80"
     volumes:
-      - ${WEB_SIM_DIR:-../droneblocks-web-sim}:/usr/share/nginx/html:ro
+      - ${WEB_SIM_DIR:-/dev/null}:/usr/share/nginx/html/.dev-mount:ro
     networks:
       dexi-network:
         aliases:
