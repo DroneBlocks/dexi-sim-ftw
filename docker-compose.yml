@@ -156,6 +156,7 @@ services:
       - "1337:80"
     networks:
       dexi-network:
+        ipv4_address: 172.20.0.7   # fixed, like unity-sim was: an unpinned service grabs .2 first and ros2-dev cannot start
         aliases:
           - sim-env
           - unity-sim
