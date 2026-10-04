@@ -54,4 +54,13 @@ echo "Iris model spawned into Gazebo"
 
 # Start PX4 SITL
 # PX4's simulator_mavlink module connects to Gazebo's MAVLink plugin on TCP 4560
+# Sim-only parameters, applied once PX4 is up and saved so they survive a restart.
+#  MPC_USE_HTE=0   the hover-thrust estimator converges to ~0.30 for the iris on amd64
+#                  hosts, after which Land mode never reports "landed" (seen on Hetzner,
+#                  2026-10-04). A fixed hover thrust lands every time.
+#  SIM_BAT_DRAIN   the stock simulated battery is flat after a minute armed and then
+#                  refuses to arm ("Battery unhealthy"); two hours covers a lesson.
+( sleep 25; for kv in MPC_USE_HTE=0 SIM_BAT_DRAIN=7200 SIM_BAT_MIN_PCT=80; do
+    /opt/px4/bin/px4-param set "${kv%=*}" "${kv#*=}" >/dev/null 2>&1; done
+  /opt/px4/bin/px4-param save >/dev/null 2>&1 ) &
 exec px4 -d /opt/px4/etc -s /opt/px4/etc/init.d-posix/rcS
