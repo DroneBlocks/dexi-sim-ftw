@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.23
+    image: droneblocks/dexi-droneblocks:0.23.1
     ports:
       - "80:3000"
     networks:
@@ -116,6 +116,7 @@ services:
       - NUXT_PUBLIC_ROSBRIDGE_URL=${NUXT_PUBLIC_ROSBRIDGE_URL:-}
       - NUXT_PUBLIC_NODE_RED_URL=${NUXT_PUBLIC_NODE_RED_URL:-}
       - NUXT_PUBLIC_VSCODE_URL=${NUXT_PUBLIC_VSCODE_URL:-}
+      - NUXT_PUBLIC_MAVLINK_URL=${NUXT_PUBLIC_MAVLINK_URL:-}
     depends_on:
       - ros2-dev
     stdin_open: true
