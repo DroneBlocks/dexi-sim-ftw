@@ -10,5 +10,5 @@ services:
   web-dashboard:
     image: droneblocks/dexi-droneblocks:apriltag-proto
     environment:
-      - NUXT_PUBLIC_ROSBRIDGE_URL=ws://${DEXI_HOST:-192.168.68.61}:9090
+      - NUXT_PUBLIC_ROSBRIDGE_URL=ws://${DEXI_HOST:?set DEXI_HOST to the drone address}:9090
     depends_on: []
