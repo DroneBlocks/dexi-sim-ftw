@@ -1,6 +1,6 @@
 # DEXI Drone Simulation (SITL)
 
-Complete PX4 drone simulation with Unity 3D city, ROS2, Node-RED, and web-based ground control station.
+Complete PX4 drone simulation with a browser 3D environment (DEXI Lab, AVR 2026 field), ROS2, Node-RED, and a web-based ground control station.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ docker compose up -d
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Unity City** | http://localhost:1337 | 3D drone simulation |
+| **Simulator** | http://localhost:1337/viewer-corridor.html?autoconnect=1 | 3D environment (picker in the gear drawer) |
 | **Ground Control** | http://localhost | Web-based GCS |
 | **Node-RED** | http://localhost:1880 | Visual programming |
 | **Code Server** | https://localhost:9999 | Browser-based VS Code (password: `droneblocks`) |
@@ -38,7 +38,7 @@ docker compose up -d
 ## What's Running
 
 - **PX4 SITL** - Drone flight controller simulator
-- **Unity City** - 3D environment visualization
+- **Simulator** - 3D environments served by nginx (`sim-env`)
 - **ROS2 Humble** - Robot middleware with PX4 topics
 - **Rosbridge** - WebSocket bridge for web apps (ws://localhost:9090)
 - **Node-RED** - Flow-based drone programming
@@ -60,7 +60,7 @@ You should see PX4 topics streaming data.
 ## Architecture
 
 ```
-Unity Sim (1337) ─┐
+Simulator (1337) ┐
 Web GCS (80) ─────┼──> Rosbridge (9090) ──> ROS2 ──> PX4 SITL
 Node-RED (1880) ──┘                         Topics    Simulator
 Code Server (9999)
@@ -183,6 +183,45 @@ docker compose logs -f ros2-dev     # Specific service
 ```bash
 docker compose exec ros2-dev bash
 ```
+
+## AprilTag navigation sim (corridor and the AVR 2026 court)
+
+The simulation environments are the base stack's `sim-env` service: the
+`droneblocks/dexi-sim-env` image (built from `droneblocks-web-sim`,
+`Dockerfile.sim-env`) on port 1337. It holds the three.js DEXI Lab (the
+default), the AVR 2026 court and the tag corridor, with `environments.json`
+describing them. The page follows PX4 SITL over rosbridge, publishes the
+downward camera on `/cam0/image_raw/compressed`, and carries its own
+environment picker (gear drawer), so the GCS, a VS Code panel or a bare tab all
+show the environment the user last picked.
+
+```bash
+docker compose up -d
+# environments: http://localhost:1337/viewer-corridor.html?autoconnect=1
+# GCS:          http://localhost/droneblocks     Node-RED: http://localhost:1880/ui
+```
+
+`docker-compose.corridor.yml` only swaps in the GCS image with the AprilTag
+navigation blocks until that GCS is released.
+
+A browser tab only publishes frames while it is in the foreground. For
+unattended runs (tests, a classroom box), keep one headless page open instead:
+`node dev-cam-publisher.mjs lab` in the web-sim checkout (it uses the viewer's
+`?headless=1` camera-only mode).
+
+`docker-compose.drone.yml` points the same GCS at a real aircraft
+(`DEXI_HOST=<ip> ... up -d web-dashboard`); PX4, the detector and the manager
+then run on the aircraft.
+
+### PX4 on SIH instead of Gazebo (experiment, not ready)
+
+`docker-compose.sih.yml` runs the same PX4 binary on its built-in SIH
+simulator with no gzserver and no X server: about 11% of a core for PX4
+against 19% for PX4 plus Gazebo. It boots, arms and flies, but PX4's Hold mode
+wanders about a meter against SIH's ground truth and the EKF height sits 0.3 to
+1 m off, so tag centering diverges. The remaining work is on the PX4 side (SIH
+sensor noise and the position controller gains for `sihsim_quadx`), so Gazebo
+stays the default.
 
 ## Multi-Architecture Support
 
