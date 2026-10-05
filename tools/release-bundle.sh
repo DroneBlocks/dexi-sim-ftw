@@ -3,6 +3,8 @@
 #
 #   tools/release-bundle.sh v0.23.1            # build and upload sim/v0.23.1/
 #   tools/release-bundle.sh v0.23.1 --stable   # ...and point new launches at it
+#   REF=<branch> R2_REMOTE=r2:dexi-os-releases/test tools/release-bundle.sh v0.23.1-test --stable
+#                                              # a test bundle from a branch, outside sim/
 #
 # The bundle is what a cloud VM needs to run the stack: the compose files, the
 # bringup source the stack mounts, the Node-RED flows, the MAVSDK course folders and
@@ -13,11 +15,12 @@
 set -euo pipefail
 VERSION=${1:?usage: release-bundle.sh <version> [--stable]}
 STABLE=${2:-}
+REF=${REF:-$VERSION}
 REMOTE=${R2_REMOTE:-r2:dexi-os-releases}/sim
 NAME=dexi-sim-$VERSION.tar.gz
 WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
 
-git clone -q --recursive --depth 1 --shallow-submodules --branch "$VERSION" \
+git clone -q --recursive --depth 1 --shallow-submodules --branch "$REF" \
   https://github.com/DroneBlocks/dexi-sim-ftw.git "$WORK/dexi-sim-ftw"
 COPYFILE_DISABLE=1 tar czf "$WORK/$NAME" -C "$WORK/dexi-sim-ftw" \
   --exclude='.git' --exclude='*/.git' --exclude='./unity' .
