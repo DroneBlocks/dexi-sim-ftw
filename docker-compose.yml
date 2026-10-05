@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ros2-dev/Dockerfile.jazzy
-    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:jazzy-headless}
+    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:0.23}
     ports:
       - "9090:9090"  # rosbridge websocket
       - "9999:9999"  # code-server (password: droneblocks)
@@ -37,7 +37,7 @@ services:
 
   px4-sitl:
     build: ./px4-gazebo-slim
-    image: droneblocks/px4-gazebo-slim:1.16.0
+    image: droneblocks/px4-gazebo-slim:0.23
     # Pass target IPs for MAVLink: [API IP, QGC IP]
     # Both streams now target mavlink-router (172.20.0.9). The router fans
     # out to code-server (preserving the existing MAVSDK flow), mavlink2rest
@@ -59,7 +59,7 @@ services:
   # loop-prevention rationale for separate PX4-side and client-side ports.
   mavlink-router:
     build: ./mavlink-router
-    image: droneblocks/dexi-sim-mavlink-router:latest
+    image: droneblocks/dexi-sim-mavlink-router:0.23
     ports:
       - "5760:5760"            # TCP for QGC / MissionPlanner on the host
       - "14550:24550/udp"      # UDP GCS (clients on host see standard port)
@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.20
+    image: droneblocks/dexi-droneblocks:0.23
     ports:
       - "80:3000"
     networks:
@@ -122,7 +122,7 @@ services:
     tty: true
 
   node-red:
-    image: droneblocks/dexi-node-red:latest
+    image: droneblocks/dexi-node-red:0.0.19
     restart: unless-stopped
     ports:
       - "1880:1880"
@@ -145,7 +145,7 @@ services:
   # Port 1337 and the unity-sim alias keep NUXT_PUBLIC_SIM_URL and the provisioner's
   # sim tunnel working. The page publishes the downward camera on /cam0 over rosbridge.
   sim-env:
-    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.2.0}
+    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23}
     ports:
       - "1337:80"
     networks:
