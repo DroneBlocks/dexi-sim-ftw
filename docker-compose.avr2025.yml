@@ -1,0 +1,93 @@
+# AVR 2025 stack, kept until the 2025 field moves into the web sim: the Humble ROS image with
+# YOLO, the AVR 2025 Unity field on port 1337, the separate code-server container and the game
+# validator, layered on the base stack. Use with COMPOSE_FILE=docker-compose.yml:docker-compose.avr2025.yml.
+services:
+  ros2-dev:
+    build:
+      context: .
+      dockerfile: ros2-dev/Dockerfile.avr
+    image: droneblocks/dexi-avr-ros2:latest
+    entrypoint: /bin/bash
+    command: >
+      -c "/usr/local/bin/start-dexi-bringup.sh &
+      exec /entrypoint.sh"
+    ports: !override
+      - "6080:80"
+      - "9090:9090"
+    # The 2025 image runs the workspace it was built with. Mounting the repo's dexi_ws would
+    # run the current dexi_bringup launch files against the older packages in this image.
+    volumes: !override
+      - ./scripts:/home/ubuntu/scripts
+      - ./dexi-mavsdk:/home/ubuntu/dexi-mavsdk
+
+  # The Humble image needs the Humble agent.
+  micro-dds-agent:
+    image: microros/micro-ros-agent:humble
+
+  # The router build that feeds MAVSDK and the GCS port to the code-server container (.8).
+  mavlink-router:
+    image: droneblocks/dexi-sim-mavlink-router:latest
+
+  # The GCS release that embeds the Unity player at port 1337.
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:0.20
+
+  # The three.js environments are replaced by the Unity AVR 2025 field.
+  sim-env:
+    profiles: ["standard"]
+
+  unity-sim:
+    build:
+      context: ./unity
+      dockerfile: avr-2025-sim/Dockerfile
+    image: droneblocks/avr-2025-sim:latest
+    ports:
+      - "1337:1337"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.7
+        aliases:
+          - unity-sim
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  code-server:
+    image: droneblocks/dexi-code-server:latest
+    ports:
+      - "9999:8080"
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.8
+        aliases:
+          - code-server
+    environment:
+      - PASSWORD=droneblocks
+    volumes:
+      - ./dexi-mavsdk:/home/coder/dexi-mavsdk
+      - ./dexi-mavsdk-basics:/home/coder/dexi-mavsdk-basics
+      - ./dexi_ws:/home/coder/dexi_ws
+    command: --auth password
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  avr-validator:
+    image: droneblocks/avr-2025-game-validator:latest
+    restart: unless-stopped
+    ports:
+      - "1881:1880"  # TESTING ONLY — remove before launch
+    networks:
+      dexi-network:
+        ipv4_address: 172.20.0.11  # was .9 — collided with mavlink-router (base compose)
+        aliases:
+          - avr-validator
+    environment:
+      - ROS2_WEBSOCKET_URL=ws://ros2-dev:9090
+      - DEMO_ID=${DEMO_ID:-local-dev}
+      - SCORE_SUBMIT_URL=${SCORE_SUBMIT_URL:-}
+      - SCORE_HMAC_SECRET=${SCORE_HMAC_SECRET:-dev-secret-change-me}
+    depends_on:
+      - ros2-dev
+    stdin_open: true
+    tty: true

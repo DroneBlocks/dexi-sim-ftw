@@ -145,7 +145,7 @@ services:
   # Port 1337 and the unity-sim alias keep NUXT_PUBLIC_SIM_URL and the provisioner's
   # sim tunnel working. The page publishes the downward camera on /cam0 over rosbridge.
   sim-env:
-    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23}
+    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23.1}
     ports:
       - "1337:80"
     networks:
