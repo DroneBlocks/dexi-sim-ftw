@@ -1,4 +1,4 @@
-# Two regressions caught on 2026-10-04, run with rclpy inside the ROS container:
+# Two flight regressions, run with rclpy inside the ROS container:
 #  1. arm on the ground, then disarm (PX4 must stay "landed" under the manager's ground hold)
 #  2. a hold_ned mission, land, then a new takeoff must report arrival
 import rclpy, time

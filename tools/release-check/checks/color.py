@@ -23,7 +23,7 @@ print('takeoff:', call('offboard_takeoff', 1.0).message, flush=True)
 z = st['z']; yaw = st['yaw'] * 57.2958
 results = {}
 for name, east in [('red', -0.4), ('orange', 0.8), ('yellow', 2.0), ('green', 3.2), ('blue', 4.4)]:
-    r = call('goto_ned', north=-1.5, east=east, down=z, yaw=yaw); spin(2.5)
+    call('goto_ned', north=-1.5, east=east, down=z, yaw=yaw); spin(2.5)
     seen.clear(); spin(2.0)
     names = sorted({c for frame in seen for (c, _, _) in frame})
     best = max((d for frame in seen for d in frame if d[0] == name), key=lambda d: d[2], default=None)

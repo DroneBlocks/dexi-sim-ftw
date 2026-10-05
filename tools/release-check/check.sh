@@ -14,7 +14,7 @@ reset_px4() {
 }
 run() { local name=$1; shift; echo "== $name"; local t0=$SECONDS
   if "$@" > "logs/$name.log" 2>&1; then echo "PASS $name ($((SECONDS - t0)) s)" | tee -a logs/summary.txt
-  else echo "FAIL $name ($((SECONDS - t0)) s) — logs/$name.log" | tee -a logs/summary.txt; grep -E "PASS|FAIL|Error|error" "logs/$name.log" | tail -6; fi; }
+  else echo "FAIL $name ($((SECONDS - t0)) s): logs/$name.log" | tee -a logs/summary.txt; grep -E "PASS|FAIL|Error|error" "logs/$name.log" | tail -6; fi; }
 WANT=${*:-"stack blockly-takeoff-land blockly-square nodered-flow python-offboard color yolo mavsdk regressions"}
 want() { [[ " $WANT " == *" $1 "* ]]; }
 want stack              && run stack node checks/stack.mjs
