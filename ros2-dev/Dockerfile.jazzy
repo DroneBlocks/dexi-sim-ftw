@@ -21,9 +21,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Python the lessons and examples import: MAVSDK for the MAVSDK course, roslibpy for
-# rosbridge clients, pysm for the offboard state machines. MAVSDK 4 ships a cmavsdk
+# rosbridge clients, pysm for the offboard state machines, onnxruntime for dexi_yolo. MAVSDK 4 ships a cmavsdk
 # library that does not load on arm64 Ubuntu 24.04; 3.15.3 is what the lessons ran on.
-RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed typing_extensions pysm "mavsdk==3.15.3" roslibpy
+RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed typing_extensions pysm "mavsdk==3.15.3" roslibpy onnxruntime && \
+    pip3 uninstall -y --break-system-packages numpy   # onnxruntime pulls NumPy 2, which breaks the apt OpenCV; keep Ubuntu's 1.26
 
 WORKDIR /home/ubuntu/dexi_ws
 COPY dexi_ws/src/dexi_bringup/dexi.repos src/dexi_bringup/dexi.repos
@@ -34,13 +35,13 @@ RUN vcs import src < src/dexi_bringup/dexi.repos && \
     rm -rf src/vision_opencv src/image_transport_plugins src/topic_tools \
            src/camera_ros src/web_video_server src/async_web_server_cpp \
            src/micro-ROS-Agent src/micro_ros_msgs \
-           src/dexi_camera src/dexi_yolo src/dexi_gpio src/dexi_cpp
+           src/dexi_camera src/dexi_gpio src/dexi_cpp
 COPY dexi_ws/src/dexi_bringup src/dexi_bringup
 
 RUN rosdep update --rosdistro jazzy && \
     apt-get update && \
     rosdep install --from-paths src --ignore-src -y --rosdistro jazzy \
-        --skip-keys "ament_python camera_ros dexi_cpp clang-format ament_cmake_clang_format ament_cmake_cppcheck llama-cpp-python" && \
+        --skip-keys "python3-ultralytics python3-torch python3-torchvision ament_python camera_ros dexi_cpp clang-format ament_cmake_clang_format ament_cmake_cppcheck llama-cpp-python" && \
     rm -rf /var/lib/apt/lists/*
 
 RUN bash -c "source /opt/ros/jazzy/setup.bash && \
@@ -49,7 +50,7 @@ RUN bash -c "source /opt/ros/jazzy/setup.bash && \
         px4_msgs dexi_interfaces \
         rosbridge_test_msgs rosbridge_library rosapi_msgs rosapi rosbridge_msgs rosbridge_server \
         apriltag apriltag_msgs apriltag_ros \
-        dexi_offboard dexi_led dexi_apriltag dexi_color_detection dexi_ctf dexi_llm dexi_tools dexi_bringup"
+        dexi_offboard dexi_led dexi_apriltag dexi_color_detection dexi_yolo dexi_ctf dexi_llm dexi_tools dexi_bringup"
 
 # code-server, as on the aircraft: VS Code in the browser opening the workspace, with
 # native rclpy. Same port and password the sim always used.
