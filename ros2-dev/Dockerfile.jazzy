@@ -19,10 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-jazzy-ament-cmake-mypy ros-jazzy-ament-lint-auto ros-jazzy-ament-lint-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Python the lessons and examples import: MAVSDK for the MAVSDK course, roslibpy for
-# rosbridge clients, pysm for the offboard state machines, onnxruntime for dexi_yolo.
+# Python the lessons and examples import: MAVSDK for the MAVSDK course, pysm for the
+# offboard state machines, onnxruntime for dexi_yolo.
 # MAVSDK is pinned to 3.15.3: the 4.x cmavsdk library does not load on arm64 Ubuntu 24.04.
-RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed typing_extensions pysm "mavsdk==3.15.3" roslibpy onnxruntime && \
+RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed typing_extensions pysm "mavsdk==3.15.3" onnxruntime && \
     pip3 uninstall -y --break-system-packages numpy   # onnxruntime pulls NumPy 2, which breaks the apt OpenCV; keep Ubuntu's 1.26
 
 WORKDIR /home/ubuntu/dexi_ws
