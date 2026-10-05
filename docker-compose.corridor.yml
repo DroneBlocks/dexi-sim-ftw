@@ -1,74 +1,15 @@
-# AprilTag corridor prototype overlay.
+# AprilTag navigation overlay: swaps in the GCS built with the AprilTag
+# navigation blocks (wait for tag, center on tag, fly until tag, fly at speed
+# for time, land on tag). The environments are the base stack's sim-env
+# service on port 1337.
 #
-# Adds two things to the base stack:
-#   (the environments themselves are the base stack's sim-env service on 1337)
-#   web-dashboard  the GCS built from the feat/apriltag-nav-blocks branch, which
-#                  has the AprilTag navigation blocks (wait for tag, center on
-#                  tag, fly until tag, fly at speed for time, land on tag).
+#   docker compose -f docker-compose.yml -f docker-compose.corridor.yml up -d
 #
-#   docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
-#       up -d px4-sitl micro-dds-agent ros2-dev corridor-sim web-dashboard
-#
-#   sim:  http://localhost:8000/viewer-corridor.html?autoconnect=1   (&scene=avr2026 for the real court)
-#   GCS:  http://localhost/droneblocks   menu → AprilTag Corridor Sim or AVR 2026 Field Sim, Demos → AprilTag Corridor
+#   sim:  http://localhost:1337/viewer-corridor.html?autoconnect=1   (&scene=avr2026 for the AVR court)
+#   GCS:  http://localhost/droneblocks   menu: AprilTag Corridor Sim or AVR 2026 Field Sim, Demos: AprilTag Corridor
 #
 # The sim page must stay in a foreground window: browsers throttle animation
 # frames in background tabs, which stops the camera stream.
 services:
   web-dashboard:
     image: droneblocks/dexi-droneblocks:apriltag-proto
-
-  # Dashboard-driven sim reset: POST /reset teleports the Gazebo model back to
-  # tag 0 and PX4's estimator follows in ~12 s. No Docker access needed by anyone.
-  # PX4's command socket (/tmp/px4-sock-0) is shared so the sidecar can also restart
-  # the estimator after a teleport, which re-zeroes position and height in one go.
-  px4-sitl:
-    # Restart on exit so `px4-shutdown` (what the RESET SIM button runs through
-    # sim-control) comes back as a fresh PX4 + Gazebo in ~15 s.
-    restart: unless-stopped
-    entrypoint: ["/opt/px4/entrypoint-gazebo.sh"]
-    environment:
-      - UXRCE_AGENT_IP=172.20.0.12
-    volumes:
-      - ./dexi-mavsdk:/root/dexi-mavsdk
-      - ${GAZEBO_ENTRYPOINT:-./px4-gazebo-slim/entrypoint-gazebo.sh}:/opt/px4/entrypoint-gazebo.sh:ro
-      - px4-ipc:/tmp
-
-  # The base stack runs the DDS agent inside px4-sitl's network namespace, which
-  # orphans it whenever px4-sitl restarts (the client then sits "disconnected"
-  # until someone restarts the agent too). Here the agent is its own endpoint and
-  # PX4 is pointed at it (UXRCE_AGENT_IP above), so a PX4 restart reconnects alone.
-  micro-dds-agent:
-    profiles: ["legacy-agent"]
-  dds-agent:
-    image: microros/micro-ros-agent:humble
-    command: udp4 --port 8888
-    environment:
-      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
-      - RMW_FASTRTPS_USE_QOS_FROM_XML=0
-    networks:
-      dexi-network:
-        ipv4_address: 172.20.0.12
-        aliases:
-          - dds-agent
-    restart: unless-stopped
-
-  sim-control:
-    build: ./sim-control
-    image: droneblocks/dexi-sim-control:dev
-    environment:
-      - GAZEBO_MASTER_URI=http://px4-sitl:11345
-    volumes:
-      - px4-ipc:/tmp
-    ports:
-      - "8090:8090"
-    networks:
-      dexi-network:
-        aliases:
-          - sim-control
-    depends_on:
-      - px4-sitl
-    restart: unless-stopped
-
-volumes:
-  px4-ipc:
