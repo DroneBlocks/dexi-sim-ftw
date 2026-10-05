@@ -1,14 +1,13 @@
 # ROS 2 Jazzy sim image: the DEXI workspace, rosbridge and code-server, no desktop.
-# Jazzy because the aircraft runs Jazzy and dexi.repos pins Jazzy branches; the old
-# Humble image only worked because those branches happened to build on both.
+# Jazzy to match the aircraft and the Jazzy branches pinned in dexi.repos.
 # Build from the repo root:  docker build -f ros2-dev/Dockerfile.jazzy -t droneblocks/dexi-sim-ros2:jazzy-headless .
 FROM ros:jazzy-ros-base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ROS_DISTRO=jazzy
 
-# Build tools plus the Jazzy binaries for everything the workspace used to build from
-# source and does not change: cv_bridge, image transport plugins, topic_tools.
+# Build tools plus Jazzy binaries for the dexi.repos packages the sim does not modify:
+# cv_bridge, image transport plugins, topic_tools.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl ca-certificates build-essential cmake \
         python3-pip python3-vcstool python3-colcon-common-extensions python3-rosdep \
@@ -21,8 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Python the lessons and examples import: MAVSDK for the MAVSDK course, roslibpy for
-# rosbridge clients, pysm for the offboard state machines, onnxruntime for dexi_yolo. MAVSDK 4 ships a cmavsdk
-# library that does not load on arm64 Ubuntu 24.04; 3.15.3 is what the lessons ran on.
+# rosbridge clients, pysm for the offboard state machines, onnxruntime for dexi_yolo.
+# MAVSDK is pinned to 3.15.3: the 4.x cmavsdk library does not load on arm64 Ubuntu 24.04.
 RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed typing_extensions pysm "mavsdk==3.15.3" roslibpy onnxruntime && \
     pip3 uninstall -y --break-system-packages numpy   # onnxruntime pulls NumPy 2, which breaks the apt OpenCV; keep Ubuntu's 1.26
 
@@ -53,7 +52,7 @@ RUN bash -c "source /opt/ros/jazzy/setup.bash && \
         dexi_offboard dexi_led dexi_apriltag dexi_color_detection dexi_yolo dexi_ctf dexi_llm dexi_tools dexi_bringup"
 
 # code-server, as on the aircraft: VS Code in the browser opening the workspace, with
-# native rclpy. Same port and password the sim always used.
+# native rclpy.
 RUN curl -fsSL https://code-server.dev/install.sh | sh && \
     mkdir -p /root/.config/code-server && \
     printf 'bind-addr: 0.0.0.0:9999\nauth: password\npassword: droneblocks\ncert: false\n' > /root/.config/code-server/config.yaml && \
