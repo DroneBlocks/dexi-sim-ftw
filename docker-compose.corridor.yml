@@ -1,0 +1,15 @@
+# AprilTag navigation overlay: swaps in the GCS built with the AprilTag
+# navigation blocks (wait for tag, center on tag, fly until tag, fly at speed
+# for time, land on tag). The environments are the base stack's sim-env
+# service on port 1337.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.corridor.yml up -d
+#
+#   sim:  http://localhost:1337/viewer-corridor.html?autoconnect=1   (&scene=avr2026 for the AVR court)
+#   GCS:  http://localhost/droneblocks   menu: AprilTag Corridor Sim or AVR 2026 Field Sim, Demos: AprilTag Corridor
+#
+# The sim page must stay in a foreground window: browsers throttle animation
+# frames in background tabs, which stops the camera stream.
+services:
+  web-dashboard:
+    image: droneblocks/dexi-droneblocks:apriltag-proto
