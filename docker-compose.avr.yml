@@ -13,6 +13,11 @@ services:
     ports: !override
       - "6080:80"
       - "9090:9090"
+    # The 2025 image runs the workspace it was built with. Mounting the repo's dexi_ws would
+    # run the current dexi_bringup launch files against the older packages in this image.
+    volumes: !override
+      - ./scripts:/home/ubuntu/scripts
+      - ./dexi-mavsdk:/home/ubuntu/dexi-mavsdk
 
   # The Humble image needs the Humble agent.
   micro-dds-agent:
