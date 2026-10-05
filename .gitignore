@@ -36,3 +36,6 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+tools/release-check/node_modules/
+tools/release-check/logs/
+tools/release-check/package-lock.json

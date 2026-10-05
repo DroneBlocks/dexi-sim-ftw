@@ -1,0 +1,7 @@
+{
+  "name": "dexi-sim-release-check",
+  "private": true,
+  "type": "module",
+  "description": "Functional checks against a running DEXI sim stack: Blockly missions, Node-RED flow, Python offboard, MAVSDK.",
+  "dependencies": { "playwright": "^1.47.0" }
+}
