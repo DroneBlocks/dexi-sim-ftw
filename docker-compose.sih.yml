@@ -1,7 +1,7 @@
 # PX4 on its built-in SIH simulator instead of Gazebo: same image, same
-# airframe family, no gzserver and no X server. For classroom cloud boxes the
-# physics is the only thing Gazebo was providing (empty world, camera from the
-# three.js court), and SIH does that for a fraction of the CPU.
+# airframe family, no gzserver and no X server. With the camera coming from the
+# three.js environment, Gazebo only provides physics, which SIH does for a
+# fraction of the CPU. Experimental; see the README.
 #
 #   docker compose -f docker-compose.yml -f docker-compose.corridor.yml \
 #                  -f docker-compose.sih.yml up -d

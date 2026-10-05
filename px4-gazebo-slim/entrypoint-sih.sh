@@ -1,7 +1,7 @@
 #!/bin/bash
 # PX4 SITL on the built-in SIH simulator (simulator_sih): same binary, same
 # airframe family as the Gazebo image, but no gzserver and no X server. The
-# camera comes from the three.js court (corridor-sim), not from the physics.
+# camera comes from the three.js environment (sim-env), not from the physics.
 set -e
 IP_API="${1:-172.20.0.8}"
 IP_QGC="${2:-172.20.0.8}"

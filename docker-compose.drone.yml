@@ -1,6 +1,6 @@
 # Point the GCS at a real DEXI instead of the SITL stack.
 #
-#   DEXI_HOST=192.168.68.61 docker compose -f docker-compose.yml -f docker-compose.drone.yml up -d web-dashboard
+#   DEXI_HOST=<drone ip> docker compose -f docker-compose.yml -f docker-compose.drone.yml up -d web-dashboard
 #   GCS: http://localhost/droneblocks   (drone view, live camera in the right pane)
 #
 # Only the dashboard runs; PX4, the detector and the offboard manager are on the

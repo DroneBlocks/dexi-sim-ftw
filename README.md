@@ -188,12 +188,12 @@ docker compose exec ros2-dev bash
 
 The simulation environments are the base stack's `sim-env` service: the
 `droneblocks/dexi-sim-env` image (built from `droneblocks-web-sim`,
-`Dockerfile.sim-env`) on port 1337, where the Unity player used to be. It holds
-the three.js DEXI Lab (the default), the AVR 2026 court and the tag corridor,
-with `environments.json` describing them. The page follows PX4 SITL over
-rosbridge, publishes the downward camera on `/cam0/image_raw/compressed` as
-Unity did, and carries its own environment picker (gear drawer), so the GCS,
-a VS Code panel or a bare tab all show the environment the user last picked.
+`Dockerfile.sim-env`) on port 1337. It holds the three.js DEXI Lab (the
+default), the AVR 2026 court and the tag corridor, with `environments.json`
+describing them. The page follows PX4 SITL over rosbridge, publishes the
+downward camera on `/cam0/image_raw/compressed`, and carries its own
+environment picker (gear drawer), so the GCS, a VS Code panel or a bare tab all
+show the environment the user last picked.
 
 ```bash
 docker compose up -d
@@ -216,14 +216,12 @@ then run on the aircraft.
 ### PX4 on SIH instead of Gazebo (experiment, not ready)
 
 `docker-compose.sih.yml` runs the same PX4 binary on its built-in SIH
-simulator with no gzserver and no X server, which is the cheap option for a
-cloud box: 11% of a core for PX4 against about 19% for PX4 plus Gazebo. It
-boots, arms and flies, but out of the box PX4's own Hold mode wanders about a
-meter against SIH's ground truth and the EKF height sits 0.3 to 1 m off, so
-tag centering diverges. Switching the height reference to GPS did not change
-the horizontal wander. The remaining work is on the PX4 side (SIH sensor
-noise and the position controller gains for `sihsim_quadx`), so the Gazebo
-stack stays the default.
+simulator with no gzserver and no X server: about 11% of a core for PX4
+against 19% for PX4 plus Gazebo. It boots, arms and flies, but PX4's Hold mode
+wanders about a meter against SIH's ground truth and the EKF height sits 0.3 to
+1 m off, so tag centering diverges. The remaining work is on the PX4 side (SIH
+sensor noise and the position controller gains for `sihsim_quadx`), so Gazebo
+stays the default.
 
 ## Multi-Architecture Support
 

@@ -145,18 +145,17 @@ services:
     stdin_open: true
     tty: true
 
-  # The simulation environments (droneblocks-web-sim, Dockerfile.sim-env): the three.js
+  # Simulation environments (droneblocks-web-sim, Dockerfile.sim-env): the three.js
   # DEXI Lab, the AVR 2026 court and the tag corridor, with environments.json for pickers.
-  # Replaces the Unity player on the same port, so NUXT_PUBLIC_SIM_URL and the
-  # provisioner's sim tunnel are unchanged. The page publishes the downward camera on
-  # /cam0 over rosbridge, as Unity did.
+  # Port 1337 and the unity-sim alias keep NUXT_PUBLIC_SIM_URL and the provisioner's
+  # sim tunnel working. The page publishes the downward camera on /cam0 over rosbridge.
   sim-env:
     image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.2.0}
     ports:
       - "1337:80"
     networks:
       dexi-network:
-        ipv4_address: 172.20.0.7   # fixed, like unity-sim was: an unpinned service grabs .2 first and ros2-dev cannot start
+        ipv4_address: 172.20.0.7   # pinned: unpinned, it takes .2 first and ros2-dev cannot start
         aliases:
           - sim-env
           - unity-sim
