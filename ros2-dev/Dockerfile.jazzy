@@ -59,6 +59,11 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh && \
     code-server --install-extension ms-python.python && \
     rm -rf /root/.cache
 
+# Workspace trust off: Restricted Mode disables the Python extension, which removes the
+# Run button.
+RUN mkdir -p /root/.local/share/code-server/User && \
+    printf '{\n  "security.workspace.trust.enabled": false\n}\n' > /root/.local/share/code-server/User/settings.json
+
 # The compose file bind-mounts the host checkout over /home/ubuntu/dexi_ws; the start
 # script fills it from this stash when the host copy is not built.
 RUN cp -a /home/ubuntu/dexi_ws /opt/dexi_ws_prebuilt

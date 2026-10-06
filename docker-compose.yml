@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ros2-dev/Dockerfile.jazzy
-    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:0.23}
+    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:0.23.2}
     ports:
       - "9090:9090"  # rosbridge websocket
       - "9999:9999"  # code-server (password: droneblocks)
