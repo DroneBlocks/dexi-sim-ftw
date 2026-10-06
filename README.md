@@ -232,3 +232,7 @@ See [README.pi.md](README.pi.md) for deploying to real DEXI drones with Raspberr
 ---
 
 **Need Help?** Open an issue at https://github.com/DroneBlocks/dexi-sim-ftw/issues
+
+## Releasing
+
+Cloud launches run the published release bundle, not main. See [RELEASE.md](RELEASE.md).
