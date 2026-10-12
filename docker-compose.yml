@@ -37,7 +37,7 @@ services:
 
   px4-sitl:
     build: ./px4-gazebo-slim
-    image: droneblocks/px4-gazebo-slim:0.23
+    image: droneblocks/px4-gazebo-slim:0.23.6
     # Pass target IPs for MAVLink: [API IP, QGC IP]
     # Both streams now target mavlink-router (172.20.0.9). The router fans
     # out to code-server (preserving the existing MAVSDK flow), mavlink2rest
@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.23.2
+    image: droneblocks/dexi-droneblocks:0.23.6
     ports:
       - "80:3000"
     networks:
