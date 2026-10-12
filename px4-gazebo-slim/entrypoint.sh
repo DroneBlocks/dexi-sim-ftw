@@ -61,9 +61,14 @@ echo "Iris model spawned into Gazebo"
 #  MPC_USE_HTE=0   on amd64 hosts the hover-thrust estimator converges to ~0.30 for
 #                  the iris and Land mode then never detects landing; a fixed hover
 #                  thrust lands reliably.
-#  SIM_BAT_DRAIN   the stock simulated battery is flat after a minute armed and then
-#                  refuses to arm ("Battery unhealthy"); two hours covers a lesson.
-( sleep 25; for kv in MPC_USE_HTE=0 SIM_BAT_DRAIN=7200 SIM_BAT_MIN_PCT=80; do
+#  SIM_BAT_DRAIN   the stock simulated battery is flat after a minute armed; two hours
+#                  covers a lesson.
+#  CBRK_SUPPLY_CHK PX4's battery_simulator occasionally stops publishing after a disarm
+#                  while the module still reports running (PX4 #27653). Commander treats
+#                  a battery reading older than 5 s as unhealthy and refuses to arm until
+#                  PX4 restarts. The breaker skips the battery health checks; the sim has
+#                  no real supply to protect.
+( sleep 25; for kv in MPC_USE_HTE=0 SIM_BAT_DRAIN=7200 SIM_BAT_MIN_PCT=80 CBRK_SUPPLY_CHK=894281; do
     /opt/px4/bin/px4-param set "${kv%=*}" "${kv#*=}" >/dev/null 2>&1; done
   /opt/px4/bin/px4-param save >/dev/null 2>&1 ) &
 
