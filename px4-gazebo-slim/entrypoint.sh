@@ -33,10 +33,15 @@ export PX4_SYS_AUTOSTART=10016
 export PX4_SIM_MODEL=iris
 export PX4_SIMULATOR=gazebo
 
-# Patch MAVLink config to send to target IPs
 CONFIG_FILE=/opt/px4/etc/init.d-posix/px4-rc.mavlink
-sed -i "s/mavlink start -x -u \$udp_gcs_port_local -r 4000000/mavlink start -x -u \$udp_gcs_port_local -r 4000000 -t ${IP_QGC}/" ${CONFIG_FILE}
-sed -i "s/mavlink start -x -u \$udp_offboard_port_local -r 4000000/mavlink start -x -u \$udp_offboard_port_local -r 4000000 -t ${IP_API}/" ${CONFIG_FILE}
+# Point PX4's two router-facing MAVLink links at the target IPs. Each line is
+# rewritten whole so a container restart does not stack another -t on it.
+# Forwarding (-f) is left off: mavlink-router already fans traffic out, and with
+# PX4 also forwarding between these two links, every message loops back through
+# the router. The router then believes MAVSDK lives behind PX4 and stops routing
+# MAVSDK commands to it, so arm and offboard start time out.
+sed -i "s/^mavlink start -x -u \$udp_gcs_port_local .*/mavlink start -x -u \$udp_gcs_port_local -r 4000000 -t ${IP_QGC}/" ${CONFIG_FILE}
+sed -i "s/^mavlink start -x -u \$udp_offboard_port_local .*/mavlink start -x -u \$udp_offboard_port_local -r 4000000 -t ${IP_API} -m onboard -o \$udp_offboard_port_remote/" ${CONFIG_FILE}
 
 # Start Xvfb for headless Gazebo
 Xvfb :99 -screen 0 1600x1200x24+32 &
