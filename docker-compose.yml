@@ -134,6 +134,10 @@ services:
           - node-red
     environment:
       - ROS2_WEBSOCKET_URL=ws://ros2-dev:9090
+      # The Sim panel beside the editor needs the viewer and rosbridge URLs the
+      # browser can reach. Unset locally, where it uses the page's host on 1337/9090.
+      - DEXI_SIM_URL=${NUXT_PUBLIC_SIM_URL:-}
+      - DEXI_ROSBRIDGE_URL=${NUXT_PUBLIC_ROSBRIDGE_URL:-}
     depends_on:
       - ros2-dev
     volumes:
