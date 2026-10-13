@@ -59,7 +59,7 @@ services:
   # loop-prevention rationale for separate PX4-side and client-side ports.
   mavlink-router:
     build: ./mavlink-router
-    image: droneblocks/dexi-sim-mavlink-router:0.23
+    image: droneblocks/dexi-sim-mavlink-router:0.23.8
     ports:
       - "5760:5760"            # TCP for QGC / MissionPlanner on the host
       - "14550:24550/udp"      # UDP GCS (clients on host see standard port)
