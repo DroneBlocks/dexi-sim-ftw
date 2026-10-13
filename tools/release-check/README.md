@@ -2,7 +2,7 @@
 
 Functional checks against a running sim stack, the way students use it: Blockly demo missions
 through the GCS page, the Node-RED tag-navigation flow, the rclpy tag-hop example from inside the
-ROS container, a MAVSDK mission over mavlink-router, and two regressions. Twelve to fifteen minutes.
+ROS container, a MAVSDK mission over mavlink-router, two regressions and the battery breaker. Twelve to fifteen minutes.
 
 ```bash
 # local stack
@@ -30,6 +30,7 @@ battery. The viewer page a check opens is also the drone camera. Logs land in `t
 | `yolo` | dexi_yolo (AVR 2026 model, 1 Hz) detects eight lab stickers from 0.6 m; bridges 2 and 3 are excluded until line counting is solved |
 | `mavsdk` | `takeoff_and_land.py` from dexi-mavsdk, inside the ROS container, over mavlink-router's 14540 feed |
 | `regressions` | arm then disarm on the ground; a new takeoff after a hold_ned mission |
+| `battery` | PX4's battery health check is off (`CBRK_SUPPLY_CHK=894281`), so a stalled `battery_simulator` cannot block arming |
 
 `logs/summary.txt` has the last run's table; `logs/<check>.log` the detail. The command exits
 nonzero if anything failed, so it can gate a release.
