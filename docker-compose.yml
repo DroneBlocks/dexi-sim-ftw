@@ -151,6 +151,10 @@ services:
   # sim tunnel working. The page publishes the downward camera on /cam0 over rosbridge.
   sim-env:
     image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23.6}
+    # The environment a fresh browser opens on (an id in environments.json, e.g. gym);
+    # empty keeps the manifest default. The provisioner sets it per launch in .env.
+    environment:
+      - SIM_DEFAULT_ENVIRONMENT=${SIM_DEFAULT_ENVIRONMENT:-}
     ports:
       - "1337:80"
     networks:
