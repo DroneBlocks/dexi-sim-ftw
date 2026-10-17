@@ -69,10 +69,14 @@ echo "Iris model spawned into Gazebo"
 #                  PX4 restarts. The breaker skips the battery health checks; the sim has
 #                  no real supply to protect.
 #  COM_RC_LOSS_T=1 The sim's "radio" is the browser's keyboard pilot, whose stick messages
-#  COM_RCL_EXCEPT=4 cross the internet: one late burst is enough to trip PX4's 0.5 s stick-
-#                  loss failsafe and land the drone. Allow 1 s, and ignore stick loss while a
-#                  program flies in Offboard (exception bit 2), where the sticks do nothing.
-( sleep 25; for kv in MPC_USE_HTE=0 SIM_BAT_DRAIN=7200 SIM_BAT_MIN_PCT=80 CBRK_SUPPLY_CHK=894281 COM_RC_LOSS_T=1 COM_RCL_EXCEPT=4; do
+#  COM_RCL_EXCEPT=6 cross the internet: one late burst is enough to trip PX4's 0.5 s stick-
+#                  loss failsafe and land the drone. Allow 1 s, and ignore stick loss in Hold
+#                  and Offboard (exception bits 1 and 2), where the sticks fly nothing.
+#  NAV_RCL_ACT=1   and when the sticks do stall while the student flies in Position, hold
+#                  in place instead of returning and landing: the next stick key flies on.
+#  MIS_TAKEOFF_ALT=1.5  the keyboard pilot's T uses PX4's takeoff mode; 1.5 m matches the
+#                  takeoff blocks.
+( sleep 25; for kv in MPC_USE_HTE=0 SIM_BAT_DRAIN=7200 SIM_BAT_MIN_PCT=80 CBRK_SUPPLY_CHK=894281 COM_RC_LOSS_T=1 COM_RCL_EXCEPT=6 NAV_RCL_ACT=1 MIS_TAKEOFF_ALT=1.5; do
     /opt/px4/bin/px4-param set "${kv%=*}" "${kv#*=}" >/dev/null 2>&1; done
   /opt/px4/bin/px4-param save >/dev/null 2>&1 ) &
 
