@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ros2-dev/Dockerfile.jazzy
-    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:0.23.5}
+    image: ${ROS_IMAGE:-droneblocks/dexi-sim-ros2:0.23.6}
     ports:
       - "9090:9090"  # rosbridge websocket
       - "9999:9999"  # code-server (password: droneblocks)
@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.23.6
+    image: droneblocks/dexi-droneblocks:0.23.7
     ports:
       - "80:3000"
     networks:
@@ -150,7 +150,7 @@ services:
   # Port 1337 and the unity-sim alias keep NUXT_PUBLIC_SIM_URL and the provisioner's
   # sim tunnel working. The page publishes the downward camera on /cam0 over rosbridge.
   sim-env:
-    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23.9}
+    image: droneblocks/dexi-sim-env:${SIM_ENV_VERSION:-0.23.10}
     # The environment a fresh browser opens on (an id in environments.json, e.g. gym);
     # empty keeps the manifest default. The provisioner sets it per launch in .env.
     environment:
