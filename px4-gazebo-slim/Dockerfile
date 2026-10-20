@@ -65,6 +65,10 @@ COPY --from=builder /root/Firmware/Tools/simulation/gazebo-classic/sitl_gazebo-c
 # Copy world-referenced models (sun/ground_plane come with gazebo11 runtime)
 COPY --from=builder /root/Firmware/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/asphalt_plane /opt/px4/models/asphalt_plane
 
+# DEXI-3 body + airframe (selected by docker-compose.dexi3.yml; the iris stays the default)
+COPY models/dexi3 /opt/px4/models/dexi3
+COPY airframes/10050_gazebo-classic_dexi3 /opt/px4/etc/init.d-posix/airframes/10050_gazebo-classic_dexi3
+
 # Copy MAVLink patching script
 COPY edit_rcS.bash /opt/px4/edit_rcS.bash
 RUN chmod +x /opt/px4/edit_rcS.bash
