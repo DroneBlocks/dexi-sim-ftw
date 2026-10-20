@@ -16,7 +16,11 @@
   momentConstant 0.012          ASSUMED (no measurement; small-prop torque/thrust ratio). CA_ROTOR*_KM matches it.
   spin directions               SOURCE: DEXI-3 4701 airframe (rotor 0 front-right CCW, 1 rear-left CCW, 2 front-left CW,
                                 3 rear-right CW): the same order and directions as the iris, so no change.
-  time constants, rotor drag    iris values, NOT DEXI-3 (left for the log-fitted dynamics change)
+  rotorDragCoefficient 4.8e-05  LOG-FITTED: tilt per speed (tan(tilt) = k v in steady flight) matched to the median of 15 real
+                                DEXI-3 flights, k = 0.045 rad/(m/s) (IQR 0.040-0.079). In this plugin drag = |w| c v per rotor, so
+                                k = 4 w_hover c / (m g); solved for c, then checked in flight (docs/dexi3-physics.md).
+  time constants                iris values (0.0125 / 0.025 s), kept: the sim's rate-loop lag already matches the real logs
+                                (48 ms vs 46 ms median, 39 flights)
   collision box 0.21x0.21x0.07  INFERRED from the frame plates (0.204 m) and battery height; its bottom is at the model
                                 origin, because the entrypoint spawns at z = 0 (a box through the ground flips this light body)
 -->
@@ -382,7 +386,7 @@
       <momentConstant>0.012</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>0</motorNumber>
-      <rotorDragCoefficient>0.000175</rotorDragCoefficient>
+      <rotorDragCoefficient>4.8e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/0</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
@@ -399,7 +403,7 @@
       <momentConstant>0.012</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>1</motorNumber>
-      <rotorDragCoefficient>0.000175</rotorDragCoefficient>
+      <rotorDragCoefficient>4.8e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/1</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
@@ -416,7 +420,7 @@
       <momentConstant>0.012</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>2</motorNumber>
-      <rotorDragCoefficient>0.000175</rotorDragCoefficient>
+      <rotorDragCoefficient>4.8e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/2</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
@@ -433,7 +437,7 @@
       <momentConstant>0.012</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>3</motorNumber>
-      <rotorDragCoefficient>0.000175</rotorDragCoefficient>
+      <rotorDragCoefficient>4.8e-05</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/3</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
