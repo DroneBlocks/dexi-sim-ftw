@@ -63,7 +63,7 @@ fi
 echo "Building DEXI packages: dexi_interfaces, dexi_offboard, dexi_led, dexi_bringup, dexi_ctf, apriltag packages, cv_bridge..."
 colcon build --packages-select dexi_interfaces dexi_offboard dexi_led dexi_bringup dexi_ctf \
     apriltag apriltag_msgs apriltag_ros dexi_apriltag \
-    cv_bridge dexi_llm dexi_color_detection \
+    cv_bridge dexi_llm dexi_vision \
   --packages-ignore dexi_cpp dexi_camera dexi_yolo camera_ros \
     compressed_depth_image_transport compressed_image_transport \
     theora_image_transport zstd_image_transport image_transport_plugins \
