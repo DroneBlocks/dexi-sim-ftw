@@ -49,7 +49,7 @@ RUN bash -c "source /opt/ros/jazzy/setup.bash && \
         px4_msgs dexi_interfaces \
         rosbridge_test_msgs rosbridge_library rosapi_msgs rosapi rosbridge_msgs rosbridge_server \
         apriltag apriltag_msgs apriltag_ros \
-        dexi_offboard dexi_cpp dexi_led dexi_apriltag dexi_color_detection dexi_yolo dexi_ctf dexi_llm dexi_tools dexi_bringup"
+        dexi_offboard dexi_cpp dexi_led dexi_apriltag dexi_vision dexi_yolo dexi_ctf dexi_llm dexi_tools dexi_bringup"
 
 # code-server, as on the aircraft: VS Code in the browser opening the workspace, with
 # native rclpy.

@@ -28,6 +28,7 @@ battery. The viewer page a check opens is also the drone camera. Logs land in `t
 | `python-offboard` | `apriltag_tag_hop.py` with rclpy inside the ROS container, tag 0 to tag 1 |
 | `color` | the color detection node reports each of the five DEXI Lab color pads from 1 m |
 | `yolo` | dexi_yolo (AVR 2026 model, 1 Hz) detects eight lab stickers from 0.6 m; bridges 2 and 3 are excluded until line counting is solved |
+| `bars` | The bar counter (dexi_vision, 2 Hz) reads bridges 1, 2 and 3 from 0.6 m and publishes nothing over a barrel |
 | `mavsdk` | `takeoff_and_land.py` from dexi-mavsdk, inside the ROS container, over mavlink-router's 14540 feed |
 | `regressions` | arm then disarm on the ground; a new takeoff after a hold_ned mission |
 | `battery` | PX4's battery health check is off (`CBRK_SUPPLY_CHK=894281`), so a stalled `battery_simulator` cannot block arming |
