@@ -1,6 +1,6 @@
 #!/bin/bash
 # dexi_yolo (AVR 2026 model, 1 Hz) against the DEXI Lab stickers, flown inside the ROS container.
-ROS=$(docker ps -q --filter label=com.docker.compose.service=ros2-dev | head -1)
+ROS=$(docker ps -q --filter label=com.docker.compose.service=ros2-dev --filter publish=9090 | head -1)   # the stack behind :9090, not another one on the same host
 [ -n "$ROS" ] || { echo "FAIL yolo: no ros2-dev container"; exit 1; }
 docker cp "$(dirname "$0")/yolo.py" "$ROS":/tmp/release_yolo.py
 STICKERS=wheat,water,gasoline,toxic,blackout,wheat_barn,water_barn,bridge_1
