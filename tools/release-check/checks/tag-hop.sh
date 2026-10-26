@@ -1,7 +1,7 @@
 #!/bin/bash
 # The v0.23 services end to end: /dexi/telemetry publishes, then the AprilTag example
 # hops from tag 0 to tag 1 on /dexi/flight/command and /dexi/tag_nav/command.
-ROS=$(docker ps -q --filter label=com.docker.compose.service=ros2-dev | head -1)
+ROS=$(docker ps -q --filter label=com.docker.compose.service=ros2-dev --filter publish=9090 | head -1)   # the stack behind :9090, not another one on the same host
 [ -n "$ROS" ] || { echo "FAIL tag-hop: no ros2-dev container"; exit 1; }
 docker exec "$ROS" bash -c '
 source /opt/ros/jazzy/setup.bash; source /home/ubuntu/dexi_ws/install/setup.bash
