@@ -97,7 +97,7 @@ services:
     tty: true
 
   web-dashboard:
-    image: droneblocks/dexi-droneblocks:0.23.7
+    image: droneblocks/dexi-droneblocks:0.23.15
     ports:
       - "80:3000"
     networks:
@@ -109,6 +109,9 @@ services:
       - ROSBRIDGE_URL=ws://ros2-dev:9090
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - CHAT_LOG_URL=${CHAT_LOG_URL}
+      # The sim release the version badge shows. Empty in a checkout; the release
+      # bundle stamps its tag in here (tools/release-bundle.sh).
+      - SIM_VERSION=${SIM_VERSION:-}
       # Branded-URL injection from cloud-init when running on a tunneled cloud
       # sim. Empty defaults keep local `docker compose up` working unchanged
       # (the GCS falls back to ${hostname}:port logic).
