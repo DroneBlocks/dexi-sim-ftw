@@ -22,6 +22,10 @@ WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT
 
 git clone -q --recursive --depth 1 --shallow-submodules --branch "$REF" \
   https://github.com/DroneBlocks/dexi-sim-ftw.git "$WORK/dexi-sim-ftw"
+# The GCS version badge reads SIM_VERSION; a checkout leaves it empty, the bundle names its tag.
+sed -i.bak "s/SIM_VERSION=\${SIM_VERSION:-}/SIM_VERSION=\${SIM_VERSION:-$VERSION}/" "$WORK/dexi-sim-ftw/docker-compose.yml"
+rm "$WORK/dexi-sim-ftw/docker-compose.yml.bak"
+grep -q "SIM_VERSION:-$VERSION}" "$WORK/dexi-sim-ftw/docker-compose.yml"
 COPYFILE_DISABLE=1 tar czf "$WORK/$NAME" -C "$WORK/dexi-sim-ftw" \
   --exclude='.git' --exclude='*/.git' --exclude='./unity' .
 (cd "$WORK" && shasum -a 256 "$NAME" > "$NAME.sha256")
