@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# @name DroneBlocks DEXI-3 (Gazebo Classic, DexiSim)
+#
+# @type Quadrotor x
+#
+# Body: px4-gazebo-slim/models/dexi3/dexi3.sdf. Selected by docker-compose.dexi3.yml.
+# This file holds only what must match that body. The DEXI-3 flight tune is a separate change.
+#
+
+. ${R}etc/init.d/rc.mc_defaults
+
+
+param set-default CA_AIRFRAME 0
+
+# Rotor geometry = the SDF rotor positions (+-0.055 m, the DEXI-3's 110 mm motor square), in PX4's
+# front-right-down frame. Order and spin match the DEXI-3 4701 airframe: 0 front-right CCW,
+# 1 rear-left CCW, 2 front-left CW, 3 rear-right CW. KM = the SDF momentConstant (0.012, ASSUMED).
+param set-default CA_ROTOR_COUNT 4
+param set-default CA_ROTOR0_PX 0.055
+param set-default CA_ROTOR0_PY 0.055
+param set-default CA_ROTOR0_KM 0.012
+param set-default CA_ROTOR1_PX -0.055
+param set-default CA_ROTOR1_PY -0.055
+param set-default CA_ROTOR1_KM 0.012
+param set-default CA_ROTOR2_PX 0.055
+param set-default CA_ROTOR2_PY -0.055
+param set-default CA_ROTOR2_KM -0.012
+param set-default CA_ROTOR3_PX -0.055
+param set-default CA_ROTOR3_PY 0.055
+param set-default CA_ROTOR3_KM -0.012
+
+param set-default PWM_MAIN_FUNC1 101
+param set-default PWM_MAIN_FUNC2 102
+param set-default PWM_MAIN_FUNC3 103
+param set-default PWM_MAIN_FUNC4 104
+
+# Thrust curve of this sim body: rotor speed is linear in the motor command and thrust ~ speed^2,
+# so a fully quadratic thrust model (1.0) makes the thrust setpoint proportional to thrust.
+# (The real DEXI-3 uses THR_MDL_FAC 0.3 for its own ESCs and hovers at 0.48 in dexi-fc-params,
+# fleet median 0.51; this sim body hovers at 0.58 because its 432 g is an ASSUMED, unweighed mass.)
+param set-default THR_MDL_FAC 1.0
+# The sim keeps the hover-thrust estimator off (entrypoint.sh, MPC_USE_HTE=0), so the fixed
+# hover thrust must be this body's: 432 g / 700 g total thrust, measured 0.583 in this sim.
+param set-default MPC_THR_HOVER 0.58

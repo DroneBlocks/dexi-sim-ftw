@@ -28,9 +28,11 @@ export LD_LIBRARY_PATH="/opt/px4/gazebo-plugins:${LD_LIBRARY_PATH}"
 export GAZEBO_MODEL_PATH="/opt/px4/models:/usr/share/gazebo-11/models:${GAZEBO_MODEL_PATH}"
 export GAZEBO_RESOURCE_PATH="/opt/px4/worlds:${GAZEBO_RESOURCE_PATH}"
 
-# Select iris airframe with Gazebo
-export PX4_SYS_AUTOSTART=10016
-export PX4_SIM_MODEL=iris
+# Select the airframe and Gazebo model. Defaults are the iris; a compose override
+# can pick another body (docker-compose.dexi3.yml). The model is spawned from
+# /opt/px4/models/<PX4_SIM_MODEL>/<PX4_SIM_MODEL>.sdf.
+export PX4_SYS_AUTOSTART=${PX4_SYS_AUTOSTART:-10016}
+export PX4_SIM_MODEL=${PX4_SIM_MODEL:-iris}
 export PX4_SIMULATOR=gazebo
 
 CONFIG_FILE=/opt/px4/etc/init.d-posix/px4-rc.mavlink
@@ -52,10 +54,10 @@ gzserver --verbose /opt/px4/worlds/empty.world &
 GAZEBO_PID=$!
 sleep 3
 
-# Spawn the iris model into Gazebo
+# Spawn the model into Gazebo
 # (The original image does this via make target; we do it directly)
-gz model --spawn-file=/opt/px4/models/iris/iris.sdf --model-name=iris -x 0 -y 0 -z 0
-echo "Iris model spawned into Gazebo"
+gz model --spawn-file=/opt/px4/models/${PX4_SIM_MODEL}/${PX4_SIM_MODEL}.sdf --model-name=${PX4_SIM_MODEL} -x 0 -y 0 -z 0
+echo "${PX4_SIM_MODEL} model spawned into Gazebo (airframe ${PX4_SYS_AUTOSTART})"
 
 # Sim-only parameters, applied once PX4 is up and saved so they survive a restart.
 #  MPC_USE_HTE=0   on amd64 hosts the hover-thrust estimator converges to ~0.30 for
