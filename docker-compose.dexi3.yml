@@ -1,0 +1,19 @@
+# DEXI-3 body instead of the iris: same image, same plugins and sensors, a DEXI-3-sized
+# Gazebo Classic model (432 g, 110 mm motor square) and a matching PX4 airframe.
+# The default stack is unchanged; this override only selects the other body.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dexi3.yml up -d
+#
+# The model, airframe and entrypoint are mounted from this checkout, so no image rebuild is
+# needed (the published entrypoint hard-codes the iris; this one reads the selection from env).
+services:
+  px4-sitl:
+    entrypoint: ["/bin/bash", "/opt/px4/entrypoint.sh"]
+    environment:
+      - PX4_SYS_AUTOSTART=10050      # px4-gazebo-slim/airframes/10050_gazebo-classic_dexi3 (10017 is taken: jmavsim_iris)
+      - PX4_SIM_MODEL=dexi3          # px4-gazebo-slim/models/dexi3/dexi3.sdf
+    volumes:
+      - ./dexi-mavsdk:/root/dexi-mavsdk
+      - ${DEXI3_SLIM_DIR:-./px4-gazebo-slim}/entrypoint.sh:/opt/px4/entrypoint.sh:ro
+      - ${DEXI3_SLIM_DIR:-./px4-gazebo-slim}/models/dexi3:/opt/px4/models/dexi3:ro
+      - ${DEXI3_SLIM_DIR:-./px4-gazebo-slim}/airframes/10050_gazebo-classic_dexi3:/opt/px4/etc/init.d-posix/airframes/10050_gazebo-classic_dexi3:ro

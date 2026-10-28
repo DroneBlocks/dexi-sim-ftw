@@ -5,3 +5,7 @@
 *.bash text eol=lf
 *.py text eol=lf
 Dockerfile text eol=lf
+
+# PX4 airframe files and Gazebo models are read inside Linux containers
+px4-gazebo-slim/airframes/* text eol=lf
+*.sdf text eol=lf
